@@ -1,25 +1,25 @@
 # Spring Boot Dockerfile for Railway (Root Directory = backend)
 FROM eclipse-temurin:17-jdk-alpine as build
 
+# Install wget for downloading Gradle
+RUN apk add --no-cache wget unzip
+
 WORKDIR /app
 
 # Copy all files
 COPY . .
 
-# Debug: List files to see what we have
-RUN ls -la
+# Download and install Gradle directly
+RUN wget https://services.gradle.org/distributions/gradle-8.5-bin.zip \
+    && unzip gradle-8.5-bin.zip \
+    && mv gradle-8.5 gradle \
+    && rm gradle-8.5-bin.zip
 
-# Make gradlew executable
-RUN chmod +x gradlew
+# Set PATH to include Gradle
+ENV PATH="/app/gradle/bin:${PATH}"
 
-# Debug: Check gradlew and gradle files
-RUN ls -la gradlew* gradle* build.gradle settings.gradle
-
-# Set GRADLE_USER_HOME to avoid path issues
-ENV GRADLE_USER_HOME=/app/.gradle
-
-# Build application with explicit settings file
-RUN ./gradlew clean build -x test --no-daemon --settings-file settings.gradle
+# Build application using Gradle directly
+RUN gradle clean build -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:17-jre-alpine

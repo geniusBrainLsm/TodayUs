@@ -89,6 +89,9 @@
       "Bash(del \"C:\\Users\\abcd8\\IdeaProjects\\TodayUs\\Dockerfile\")"
     ],
     "deny": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\c\\Users\\abcd8\\IdeaProjects\\TodayUs"
+    ]
   }
 }
