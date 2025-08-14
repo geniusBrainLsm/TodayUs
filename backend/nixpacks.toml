@@ -1,0 +1,8 @@
+[variables]
+NIXPACKS_JAVA_VERSION = "17"
+
+[phases.build]
+cmd = "chmod +x gradlew && ./gradlew clean build -x test"
+
+[start]
+cmd = "java -jar build/libs/*.jar"
