@@ -1,0 +1,128 @@
+## 환경 설정 파일 (민감한 정보 포함)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# 백엔드 환경 설정 파일
+backend/.env
+backend/.env.local
+backend/.env.development
+backend/.env.test
+backend/.env.production
+
+# 프론트엔드 환경 설정 파일
+frontend/.env
+frontend/.env.local
+frontend/.env.development
+frontend/.env.test
+frontend/.env.production
+#
+## Spring Boot 설정 파일 (민감한 정보 포함)
+# 기본 application.yml은 커밋 (민감한 정보 제외)
+# backend/src/main/resources/application.yml ← 이건 커밋함
+
+# 로컬/개발자별 설정 파일들 (민감한 정보 포함)
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-dev.yml
+backend/src/main/resources/application-test.yml
+backend/src/main/resources/application-prod.yml
+
+# 기타 민감한 설정 파일들
+**/application-secret.yml
+**/application-private.yml
+**/application-override.yml
+#
+## IDE 설정 파일
+#.idea/
+#.vscode/
+#*.iml
+#*.ipr
+#*.iws
+#
+## Java/Gradle
+#backend/.gradle/
+#backend/build/
+#backend/out/
+#backend/*.jar
+#backend/*.war
+#backend/*.ear
+#backend/hs_err_pid*
+#
+## Flutter/Dart
+#frontend/.dart_tool/
+#frontend/.flutter-plugins
+#frontend/.flutter-plugins-dependencies
+#frontend/.metadata
+#frontend/.packages
+#frontend/build/
+#frontend/ios/Flutter/Generated.xcconfig
+#frontend/ios/Flutter/flutter_export_environment.sh
+#frontend/ios/Runner/GeneratedPluginRegistrant.*
+#
+## OS generated files
+#.DS_Store
+#.DS_Store?
+#._*
+#.Spotlight-V100
+#.Trashes
+#ehthumbs.db
+#Thumbs.db
+#
+## Logs
+#*.log
+#logs/
+#
+## Temporary files
+#*.tmp
+#*.temp
+#*.swp
+#*.swo
+#
+## Database files
+#*.db
+#*.sqlite
+#*.sqlite3
+#
+## Compiled files
+#*.class
+#*.o
+#*.pyc
+#
+## Package files
+#*.jar
+#*.war
+#*.ear
+#*.zip
+#*.tar.gz
+#*.rar
+#
+## Claude and AI tools
+#.claude/
+#.mcp.json
+#
+## Documentation (임시 개발 문서들)
+#*_README.md
+#*_GUIDE.md
+#*_DEBUG.md
+#*_CHECKLIST.md
+#*_FIX.md
+#API_MANAGEMENT.md
+#DEVELOPMENT_STATUS.md
+#GOOGLE_SIGNIN_SETUP.md
+#KAKAO_*.md
+#MOBILE_TESTING_GUIDE.md
+#OAUTH2_TROUBLESHOOTING.md
+#QUICK_START.md
+#SOCIAL_LOGIN_*.md
+#
+## Docker
+#docker-compose.override.yml
+#
+## Scripts
+#*.bat
+#*.sh
+#
+## Tools
+#keytool

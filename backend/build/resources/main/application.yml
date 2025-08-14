@@ -1,0 +1,87 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/todayus
+    username: ${DB_USERNAME:todayus}
+    password: ${DB_PASSWORD:1234}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:347489897525-igcnhikahp5fsn19obcdkmch061aom37.apps.googleusercontent.com}
+            client-secret: ${GOOGLE_CLIENT_SECRET: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}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID:e74f4850d8af7e2b2aec20f4faa636b3}
+            client-secret: ${KAKAO_CLIENT_SECRET:IOSjbcQZbcrB1NptoM85i9mHf1fRM5al}
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
+            scope:
+              - profile_nickname
+              - account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+server:
+  port: 8080
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET:myVerySecretKeyForJWTTokenGeneration123456789}
+  token-validity-in-seconds: 86400 # 24시간
+
+# OpenAI 설정
+openai:
+  api:
+    key: ${OPENAI_API_KEY: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}
+
+logging:
+  level:
+    com.todayus: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: TRACE
+    org.springframework.web.client: DEBUG
+    org.springframework.security.oauth2.client: TRACE
+    ROOT: INFO
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    defaults:
+      enabled: true
+
+# 앱 설정
+app:
+  oauth2:
+    authorized-redirect-uris: 
+      - http://localhost:53153  # Flutter 웹 기본 포트
+      - http://localhost:3000
+      - http://localhost:8080

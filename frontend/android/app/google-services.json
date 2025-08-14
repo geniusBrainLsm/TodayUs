@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "873410590555",
+    "project_id": "todayus-c00d2",
+    "storage_bucket": "todayus-c00d2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:873410590555:android:b36c2a4bbd288eb98ecc7e",
+        "android_client_info": {
+          "package_name": "com.todayus.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOt3Yvnrsls8n-sa-UvjeDXOser8O6W48"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

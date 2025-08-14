@@ -1,0 +1,99 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/todayus}
+    username: ${DB_USERNAME:todayus}
+    password: ${DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID:your-kakao-client-id}
+            client-secret: ${KAKAO_CLIENT_SECRET:your-kakao-client-secret}
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/{registrationId}"
+            scope:
+              - profile_nickname
+              - account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+server:
+  port: 8080
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET:change-this-in-production-to-secure-secret}
+  token-validity-in-seconds: 86400 # 24시간
+
+# OpenAI 설정
+openai:
+  api:
+    key: ${OPENAI_API_KEY:your-openai-api-key}
+
+# AWS S3 설정
+aws:
+  access:
+    key: ${AWS_ACCESS_KEY_ID:your-aws-access-key}
+  secret:
+    key: ${AWS_SECRET_ACCESS_KEY:your-aws-secret-key}
+  region: ${AWS_REGION:ap-northeast-2}
+  s3:
+    bucket: ${AWS_S3_BUCKET:todayus}
+    profile-image-path: ${AWS_S3_PROFILE_PATH:profile-images/}
+    diary-image-path: ${AWS_S3_DIARY_PATH:diary-images/}
+
+logging:
+  level:
+    com.todayus: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: TRACE
+    org.springframework.web.client: DEBUG
+    org.springframework.security.oauth2.client: TRACE
+    ROOT: INFO
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+  health:
+    defaults:
+      enabled: true
+
+# 앱 설정
+app:
+  oauth2:
+    authorized-redirect-uris: 
+      - http://localhost:53153  # Flutter 웹 기본 포트
+      - http://localhost:3000
+      - http://localhost:8080
