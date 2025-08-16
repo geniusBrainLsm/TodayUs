@@ -35,14 +35,14 @@ class EnvironmentConfig {
         };
       case Environment.staging:
         return {
-          'baseUrl': 'https://todayus-backend-production.up.railway.app', // Railway 스테이징 URL
+          'baseUrl': 'https://todayus-production.up.railway.app', // Railway 스테이징 URL
           'enableLogging': true,
           'enableDebugMode': true,
           'apiTimeout': 15000, // 15초
         };
       case Environment.production:
         return {
-          'baseUrl': 'https://todayus-backend-production.up.railway.app', // Railway 프로덕션 URL
+          'baseUrl': 'https://todayus-production.up.railway.app', // Railway 프로덕션 URL
           'enableLogging': false,
           'enableDebugMode': false,
           'apiTimeout': 10000, // 10초

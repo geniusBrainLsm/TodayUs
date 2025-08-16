@@ -1,14 +1,20 @@
 spring:
   datasource:
     url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${PGUSER:${DB_USERNAME}}
+    password: ${PGPASSWORD:${DB_PASSWORD}}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 20000
+      idle-timeout: 300000
+      max-lifetime: 1200000
   
   jpa:
     hibernate:
-      ddl-auto: validate  # production에서는 validate 사용
-    show-sql: false      # production에서는 SQL 로그 비활성화
+      ddl-auto: update    # 처음 배포시에는 update 사용
+    show-sql: true       # 디버깅을 위해 일시적으로 활성화
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
