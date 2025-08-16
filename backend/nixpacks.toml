@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ['...', 'openjdk17']
+nixPkgs = ['openjdk17']
 
 [phases.build]
-cmds = ['./gradlew clean build -x test --no-daemon']
+cmds = ['chmod +x ./gradlew', './gradlew clean build -x test --no-daemon']
 
 [start]
-cmd = 'java $JAVA_OPTS -jar build/libs/*.jar'
+cmd = 'java $JAVA_OPTS -jar build/libs/todayus-backend.jar'
 
 [variables]
-JAVA_OPTS = '-Xmx512m -Xms256m -XX:+UseContainerSupport'
+JAVA_OPTS = '-Xmx512m -Xms256m'
