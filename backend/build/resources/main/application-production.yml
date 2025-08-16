@@ -1,0 +1,95 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate  # production에서는 validate 사용
+    show-sql: false      # production에서는 SQL 로그 비활성화
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: false
+  
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+            redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
+          kakao:
+            client-id: ${KAKAO_CLIENT_ID}
+            client-secret: ${KAKAO_CLIENT_SECRET}
+            authorization-grant-type: authorization_code
+            redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
+            scope:
+              - profile_nickname
+              - account_email
+            client-name: Kakao
+        provider:
+          kakao:
+            authorization-uri: https://kauth.kakao.com/oauth/authorize
+            token-uri: https://kauth.kakao.com/oauth/token
+            user-info-uri: https://kapi.kakao.com/v2/user/me
+            user-name-attribute: id
+
+server:
+  port: ${PORT:8080}
+
+# JWT 설정
+jwt:
+  secret: ${JWT_SECRET}
+  token-validity-in-seconds: 86400
+
+# OpenAI 설정
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+
+# AWS S3 설정
+aws:
+  access:
+    key: ${AWS_ACCESS_KEY_ID}
+  secret:
+    key: ${AWS_SECRET_ACCESS_KEY}
+  region: ${AWS_REGION}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    profile-image-path: ${AWS_S3_PROFILE_PATH:profile-images/}
+    diary-image-path: ${AWS_S3_DIARY_PATH:diary-images/}
+
+logging:
+  level:
+    com.todayus: INFO
+    org.springframework.security: WARN
+    ROOT: WARN
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: never
+  health:
+    defaults:
+      enabled: true
+
+# 앱 설정
+app:
+  oauth2:
+    authorized-redirect-uris: 
+      - ${FRONTEND_URL}
+      - ${BASE_URL}

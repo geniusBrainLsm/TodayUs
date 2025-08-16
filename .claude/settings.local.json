@@ -86,7 +86,9 @@
       "Bash(set \"AWS_SECRET_KEY=WzrwGUhxF+GUcGGMoR6deXBwjKDqgzTlXBdIUllJ\")",
       "Bash(set \"AWS_REGION=ap-northeast-2\")",
       "Bash(set \"AWS_S3_BUCKET=todayus\")",
-      "Bash(del \"C:\\Users\\abcd8\\IdeaProjects\\TodayUs\\Dockerfile\")"
+      "Bash(del \"C:\\Users\\abcd8\\IdeaProjects\\TodayUs\\Dockerfile\")",
+      "Bash(railway login:*)",
+      "Bash(railway whoami:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
