@@ -421,7 +421,7 @@ public class AuthController {
             "grant_type=authorization_code&client_id=%s&client_secret=%s&redirect_uri=%s&code=%s",
             kakaoClientId,
             kakaoClientSecret,
-            "http://10.0.2.2:8080/api/auth/kakao/callback",
+            "https://todayus-production.up.railway.app/api/auth/kakao/callback",
             code
         );
         

@@ -25,13 +25,13 @@ spring:
               - openid
               - profile
               - email
-            redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${BASE_URL:https://todayus-production.up.railway.app}/login/oauth2/code/{registrationId}"
 
           kakao:
             client-id: ${KAKAO_CLIENT_ID:your-kakao-client-id}
             client-secret: ${KAKAO_CLIENT_SECRET:your-kakao-client-secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${BASE_URL:https://todayus-production.up.railway.app}/login/oauth2/code/{registrationId}"
             scope:
               - profile_nickname
               - account_email
@@ -74,5 +74,5 @@ logging:
 app:
   oauth2:
     authorized-redirect-uris:
-      - ${BASE_URL}
+      - ${BASE_URL:https://todayus-production.up.railway.app}
       - ${FRONTEND_URL:http://localhost:53153}
