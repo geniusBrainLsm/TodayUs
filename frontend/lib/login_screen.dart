@@ -159,7 +159,7 @@ class _LoginScreenState extends State<LoginScreen>
     try {
       // 카카오 OAuth2 인증 URL 생성
       const String kakaoClientId = 'e74f4850d8af7e2b2aec20f4faa636b3'; // .env에서 가져온 값
-      const String redirectUri = 'http://10.0.2.2:8080/api/auth/kakao/callback';
+      const String redirectUri = 'https://todayus-production.up.railway.app/api/auth/kakao/callback';
       final String state = DateTime.now().millisecondsSinceEpoch.toString(); // CSRF 보호
       
       final String authUrl = 'https://kauth.kakao.com/oauth/authorize'
