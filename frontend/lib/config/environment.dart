@@ -56,13 +56,13 @@ class EnvironmentConfig {
       if (kIsWeb) {
         return 'http://localhost:8080';
       } else if (Platform.isAndroid) {
-        // Android에서 실제 디바이스인지 에뮬레이터인지 확인
-        // 실제 디바이스에서는 PC의 로컬 IP를 사용
-        return 'http://10.0.2.2:8080'; // Android 에뮬레이터 기본값
+        // 실제 디바이스에서는 Railway 서버 사용 (로컬 서버 접근 불가)
+        // 에뮬레이터에서만 10.0.2.2 사용하고, 실제 디바이스는 Railway 사용
+        return 'https://todayus-production.up.railway.app'; // 실제 디바이스용
       } else if (Platform.isIOS) {
-        return 'http://localhost:8080'; // iOS 시뮬레이터
+        return 'https://todayus-production.up.railway.app'; // iOS 실제 디바이스용
       } else {
-        return 'http://localhost:8080'; // 기본값
+        return 'http://localhost:8080'; // 기본값 (데스크톱)
       }
     } else {
       return config['baseUrl'] as String;
