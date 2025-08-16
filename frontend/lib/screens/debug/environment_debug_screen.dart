@@ -225,7 +225,7 @@ class _EnvironmentDebugScreenState extends State<EnvironmentDebugScreen> {
             const SizedBox(height: 4),
             Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, opacity: 0.9),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
           ],
         ),
