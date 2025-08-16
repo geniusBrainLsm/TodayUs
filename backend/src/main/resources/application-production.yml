@@ -1,46 +1,42 @@
 spring:
   datasource:
-    url: ${DATABASE_URL}
-    username: ${PGUSER:${DB_USERNAME}}
-    password: ${PGPASSWORD:${DB_PASSWORD}}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/todayus}
+    username: ${SPRING_DATASOURCE_USERNAME:todayus}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 1
-      connection-timeout: 20000
-      idle-timeout: 300000
-      max-lifetime: 1200000
-  
+
   jpa:
     hibernate:
-      ddl-auto: update    # 처음 배포시에는 update 사용
-    show-sql: true       # 디버깅을 위해 일시적으로 활성화
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
-  
+
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID:your-google-client-id}
+            client-secret: ${GOOGLE_CLIENT_SECRET:your-google-client-secret}
             scope:
               - openid
               - profile
               - email
             redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
+
           kakao:
-            client-id: ${KAKAO_CLIENT_ID}
-            client-secret: ${KAKAO_CLIENT_SECRET}
+            client-id: ${KAKAO_CLIENT_ID:your-kakao-client-id}
+            client-secret: ${KAKAO_CLIENT_SECRET:your-kakao-client-secret}
             authorization-grant-type: authorization_code
             redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
             scope:
               - profile_nickname
               - account_email
             client-name: Kakao
+
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -50,52 +46,33 @@ spring:
 
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: native
 
-# JWT 설정
-jwt:
-  secret: ${JWT_SECRET}
-  token-validity-in-seconds: 86400
-
-# OpenAI 설정
-openai:
-  api:
-    key: ${OPENAI_API_KEY}
-
-# AWS S3 설정
-aws:
-  access:
-    key: ${AWS_ACCESS_KEY_ID}
-  secret:
-    key: ${AWS_SECRET_ACCESS_KEY}
-  region: ${AWS_REGION}
-  s3:
-    bucket: ${AWS_S3_BUCKET}
-    profile-image-path: ${AWS_S3_PROFILE_PATH:profile-images/}
-    diary-image-path: ${AWS_S3_DIARY_PATH:diary-images/}
-
-logging:
-  level:
-    com.todayus: INFO
-    org.springframework.security: WARN
-    ROOT: WARN
-
-# Actuator 설정
 management:
   endpoints:
     web:
       exposure:
         include: health,info
-      base-path: /actuator
-  endpoint:
-    health:
-      show-details: never
-  health:
-    defaults:
-      enabled: true
 
-# 앱 설정
+jwt:
+  secret: ${JWT_SECRET:myVerySecretKeyForJWTTokenGeneration123456789}
+  token-validity-in-seconds: 86400
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY:your-openai-api-key}
+
+logging:
+  level:
+    com.todayus: INFO
+    org.springframework.security: WARN
+    org.springframework.security.oauth2: WARN
+    org.springframework.web.client: WARN
+    org.springframework.security.oauth2.client: WARN
+    ROOT: INFO
+
 app:
   oauth2:
-    authorized-redirect-uris: 
-      - ${FRONTEND_URL}
+    authorized-redirect-uris:
       - ${BASE_URL}
+      - ${FRONTEND_URL:http://localhost:53153}
