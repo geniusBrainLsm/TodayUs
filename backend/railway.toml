@@ -1,7 +1,7 @@
 [build]
-builder = "dockerfile"
-dockerfilePath = "backend/Dockerfile"
-watchPatterns = ["backend/**"]
+builder = "nixpacks"
+buildCommand = "./gradlew clean build -x test"
+watchPatterns = ["**"]
 
 [deploy]
 healthcheckPath = "/actuator/health"
