@@ -365,9 +365,8 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color(0xFFFFE4E1), // 연한 핑크
-              Color(0xFFFFF0F5), // 아주 연한 핑크
-              Colors.white,
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
             ],
           ),
         ),
@@ -388,21 +387,21 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
+            color: Colors.white.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(40),
           ),
           child: const CircularProgressIndicator(
             strokeWidth: 3,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B8A)),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
           ),
         ),
         const SizedBox(height: 20),
-        Text(
+        const Text(
           '연결 중...',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
-            color: Colors.grey[600],
+            color: Colors.white,
           ),
         ),
       ],
@@ -434,11 +433,15 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(25),
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.3),
+                width: 2,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -447,27 +450,19 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
             child: Column(
               children: [
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 80,
+                  height: 80,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFFFB6C1),
-                        Color(0xFFFF6B8A),
-                      ],
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 2,
                     ),
-                    borderRadius: BorderRadius.circular(50),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
                   ),
                   child: const Icon(
                     Icons.favorite,
-                    size: 50,
+                    size: 40,
                     color: Colors.white,
                   ),
                 ),
@@ -475,18 +470,18 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                 const Text(
                   '파트너와 연결하기',
                   style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF2D3748),
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
                   ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  '초대 코드로 소중한 사람과\n특별한 순간들을 함께 나눠보세요 💕',
+                  '초대 코드로 소중한 사람과\n특별한 순간들을 함께 나눠보세요',
                   style: TextStyle(
                     fontSize: 16,
-                    color: Colors.grey[600],
+                    color: Colors.white.withValues(alpha: 0.9),
                     height: 1.5,
                   ),
                   textAlign: TextAlign.center,
