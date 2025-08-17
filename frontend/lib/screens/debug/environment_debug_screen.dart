@@ -53,7 +53,7 @@ class _EnvironmentDebugScreenState extends State<EnvironmentDebugScreen> {
             const SizedBox(height: 12),
             _buildEnvironmentButton(
               title: '개발 환경 (로컬)',
-              subtitle: 'http://10.0.2.2:8080 (에뮬레이터)',
+              subtitle: 'Railway 프로덕션 서버',
               environment: Environment.development,
               color: Colors.blue,
             ),
@@ -257,7 +257,7 @@ class _EnvironmentDebugScreenState extends State<EnvironmentDebugScreen> {
               ),
               Text('• frontend/lib/config/environment.dart 열기'),
               Text('• baseUrlRealDevice를 PC IP로 변경'),
-              Text('• 예: "http://192.168.1.100:8080"'),
+              Text('• 현재: "https://todayus-production.up.railway.app"'),
               SizedBox(height: 12),
               Text(
                 '3. 네트워크 설정 확인:',

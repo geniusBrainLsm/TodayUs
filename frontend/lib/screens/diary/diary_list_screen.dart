@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../services/diary_service.dart';
 import 'diary_detail_screen.dart';
+import '../../config/environment.dart';
 
 class DiaryListScreen extends StatefulWidget {
   const DiaryListScreen({super.key});
@@ -499,7 +500,7 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
                                           child: ClipRRect(
                                             borderRadius: BorderRadius.circular(8),
                                             child: Image.network(
-                                              'http://localhost:8080${diary['imageUrl']}',
+                                              '${EnvironmentConfig.baseUrl}${diary['imageUrl']}',
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) {
                                                 return Container(
