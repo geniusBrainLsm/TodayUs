@@ -368,16 +368,7 @@ class _LoginScreenState extends State<LoginScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-          ),
-        ),
+        color: const Color(0xFFF8F9FA),
         child: SafeArea(
           child: FadeTransition(
             opacity: _fadeAnimation,
@@ -392,11 +383,11 @@ class _LoginScreenState extends State<LoginScreen>
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1), // Corrected withValues to withOpacity
+                        color: const Color(0xFF667eea),
                         borderRadius: BorderRadius.circular(80),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1), // Corrected withValues to withOpacity
+                            color: Colors.black.withOpacity(0.1),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -418,19 +409,13 @@ class _LoginScreenState extends State<LoginScreen>
 
                     const SizedBox(height: 40),
 
-                    Text(
+                    const Text(
                       'TodayUs',
                       style: TextStyle(
                         fontSize: 48,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.3), // Corrected withValues to withOpacity
-                            offset: const Offset(0, 4),
-                            blurRadius: 8,
-                          ),
-                        ],
+                        color: Color(0xFF2D3748),
+                        letterSpacing: 1,
                       ),
                     ),
 
@@ -440,8 +425,8 @@ class _LoginScreenState extends State<LoginScreen>
                       '우리의 특별한 순간들을\n함께 기록해보세요',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white.withOpacity(0.9), // Corrected withValues to withOpacity
+                        fontSize: 16,
+                        color: Colors.grey[600],
                         height: 1.5,
                       ),
                     ),
@@ -467,7 +452,7 @@ class _LoginScreenState extends State<LoginScreen>
                             const Text(
                               '🔑 Debug Key Hash:',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Color(0xFF2D3748),
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -476,16 +461,16 @@ class _LoginScreenState extends State<LoginScreen>
                             SelectableText(
                               _debugKeyHash!,
                               style: const TextStyle(
-                                color: Colors.white,
+                                color: Color(0xFF2D3748),
                                 fontSize: 10,
                                 fontFamily: 'monospace',
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
+                            Text(
                               'Copy this to Kakao Console',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Colors.grey[600],
                                 fontSize: 10,
                               ),
                             ),
@@ -511,7 +496,7 @@ class _LoginScreenState extends State<LoginScreen>
                           children: [
                             const Icon(
                               Icons.error_outline,
-                              color: Colors.white,
+                              color: Colors.red,
                               size: 20,
                             ),
                             const SizedBox(width: 12),
@@ -519,7 +504,7 @@ class _LoginScreenState extends State<LoginScreen>
                               child: Text(
                                 _errorMessage!,
                                 style: const TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.red,
                                   fontSize: 14,
                                 ),
                               ),
@@ -722,7 +707,7 @@ class _LoginScreenState extends State<LoginScreen>
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white.withOpacity(0.7), // Corrected withValues to withOpacity
+                        color: Colors.grey[600],
                         height: 1.4,
                       ),
                     ),
