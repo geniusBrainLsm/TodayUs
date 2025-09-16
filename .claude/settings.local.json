@@ -94,7 +94,8 @@
       "Bash(dart run:*)",
       "Bash(ssh:*)",
       "Bash(chmod:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
