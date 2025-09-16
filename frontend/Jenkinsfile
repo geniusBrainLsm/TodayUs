@@ -1,0 +1,84 @@
+pipeline {
+    agent any
+
+    environment {
+        FLUTTER_HOME = '/opt/flutter'
+        PATH = "${FLUTTER_HOME}/bin:${PATH}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Setup Flutter') {
+            steps {
+                sh '''
+                    if [ ! -d "/opt/flutter" ]; then
+                        cd /opt
+                        sudo git clone https://github.com/flutter/flutter.git -b stable
+                        sudo chmod -R 755 /opt/flutter
+                    fi
+                    flutter doctor
+                '''
+            }
+        }
+
+        stage('Flutter Dependencies') {
+            steps {
+                dir('frontend') {
+                    sh 'flutter pub get'
+                }
+            }
+        }
+
+        stage('Flutter Test') {
+            steps {
+                dir('frontend') {
+                    sh 'flutter test'
+                }
+            }
+        }
+
+        stage('Build Web') {
+            steps {
+                dir('frontend') {
+                    sh 'flutter build web --release'
+                }
+            }
+        }
+
+        stage('Build APK') {
+            steps {
+                dir('frontend') {
+                    sh 'flutter build apk --release'
+                }
+            }
+        }
+
+        stage('Deploy Web to Nginx') {
+            steps {
+                sh '''
+                    sudo rm -rf /var/www/html/todayus/*
+                    sudo cp -r frontend/build/web/* /var/www/html/todayus/
+                    sudo systemctl reload nginx
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: 'frontend/build/app/outputs/flutter-apk/*.apk', fingerprint: true
+            cleanWs()
+        }
+        success {
+            echo 'Frontend deployment successful!'
+        }
+        failure {
+            echo 'Frontend deployment failed!'
+        }
+    }
+}

@@ -26,23 +26,23 @@ class EnvironmentConfig {
     switch (_current) {
       case Environment.development:
         return {
-          'baseUrl': 'http://10.0.2.2:8080', // Android 에뮬레이터에서 localhost 접근
-          'baseUrlLocalhost': 'http://localhost:8080', // 웹/iOS용
-          'baseUrlRealDevice': 'http://192.168.1.100:8080', // 실제 디바이스용 (PC의 로컬 IP)
+          'baseUrl': 'https://todayus-production.up.railway.app', // Railway 프로덕션 서버
+          'baseUrlLocalhost': 'https://todayus-production.up.railway.app', // Railway 프로덕션 서버
+          'baseUrlRealDevice': 'https://todayus-production.up.railway.app', // Railway 프로덕션 서버
           'enableLogging': true,
           'enableDebugMode': true,
           'apiTimeout': 30000, // 30초
         };
       case Environment.staging:
         return {
-          'baseUrl': 'https://todayus-backend-production.up.railway.app', // Railway 스테이징 URL
+          'baseUrl': 'https://todayus-production.up.railway.app', // Railway 스테이징 URL
           'enableLogging': true,
           'enableDebugMode': true,
           'apiTimeout': 15000, // 15초
         };
       case Environment.production:
         return {
-          'baseUrl': 'https://todayus-backend-production.up.railway.app', // Railway 프로덕션 URL
+          'baseUrl': 'https://todayus-production.up.railway.app', // Railway 프로덕션 URL
           'enableLogging': false,
           'enableDebugMode': false,
           'apiTimeout': 10000, // 10초
@@ -54,15 +54,15 @@ class EnvironmentConfig {
     if (_current == Environment.development) {
       // 개발 환경에서 플랫폼별 URL 사용
       if (kIsWeb) {
-        return 'http://localhost:8080';
+        return 'https://todayus-production.up.railway.app';
       } else if (Platform.isAndroid) {
-        // Android에서 실제 디바이스인지 에뮬레이터인지 확인
-        // 실제 디바이스에서는 PC의 로컬 IP를 사용
-        return 'http://10.0.2.2:8080'; // Android 에뮬레이터 기본값
+        // 실제 디바이스에서는 Railway 서버 사용 (로컬 서버 접근 불가)
+        // 에뮬레이터에서만 10.0.2.2 사용하고, 실제 디바이스는 Railway 사용
+        return 'https://todayus-production.up.railway.app'; // 실제 디바이스용
       } else if (Platform.isIOS) {
-        return 'http://localhost:8080'; // iOS 시뮬레이터
+        return 'https://todayus-production.up.railway.app'; // iOS 실제 디바이스용
       } else {
-        return 'http://localhost:8080'; // 기본값
+        return 'https://todayus-production.up.railway.app'; // Railway 프로덕션 서버
       }
     } else {
       return config['baseUrl'] as String;
@@ -70,7 +70,7 @@ class EnvironmentConfig {
   }
   
   /// 실제 디바이스용 개발 서버 URL (PC의 로컬 IP 사용)
-  static String get realDeviceUrl => config['baseUrlRealDevice'] as String? ?? 'http://192.168.1.100:8080';
+  static String get realDeviceUrl => config['baseUrlRealDevice'] as String? ?? 'https://todayus-production.up.railway.app';
   
   /// 환경을 수동으로 변경하는 헬퍼 메서드들
   static void setDevelopment() => setCurrent(Environment.development);

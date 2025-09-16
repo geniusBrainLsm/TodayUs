@@ -85,13 +85,17 @@ class NicknameService {
       print('🟡 응답 본문: ${response.body}');
       
       if (ApiService.isSuccessful(response.statusCode)) {
+        // Parse response and save onboarding status
+        final data = ApiService.parseResponse(response);
+        if (data != null && data['onboarding'] != null) {
+          await AuthService.saveOnboardingStatus(data['onboarding']);
+          print('🟢 온보딩 상태 업데이트: ${data['onboarding']}');
+        }
+        
         // Save locally on success
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString(_nicknameKey, nickname.trim());
         await prefs.setBool(_nicknameSetKey, true);
-        
-        // Refresh onboarding status after nickname is set
-        await AuthService.refreshOnboardingStatus();
         
         if (kDebugMode) print('Nickname saved successfully: $nickname');
         return true;

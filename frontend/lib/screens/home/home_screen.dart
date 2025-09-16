@@ -12,6 +12,7 @@ import '../diary/diary_write_screen.dart';
 import '../diary/diary_detail_screen.dart';
 import '../weekly_emotion_summary_screen.dart';
 import '../weekly_feedback/weekly_feedback_history_screen.dart';
+import '../../config/environment.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -842,7 +843,7 @@ class _HomeScreenState extends State<HomeScreen>
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(7),
                             child: Image.network(
-                              'http://localhost:8080${diary['imageUrl']}',
+                              '${EnvironmentConfig.baseUrl}${diary['imageUrl']}',
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(

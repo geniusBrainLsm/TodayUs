@@ -86,9 +86,22 @@
       "Bash(set \"AWS_SECRET_KEY=WzrwGUhxF+GUcGGMoR6deXBwjKDqgzTlXBdIUllJ\")",
       "Bash(set \"AWS_REGION=ap-northeast-2\")",
       "Bash(set \"AWS_S3_BUCKET=todayus\")",
-      "Bash(del \"C:\\Users\\abcd8\\IdeaProjects\\TodayUs\\Dockerfile\")"
+      "Bash(del \"C:\\Users\\abcd8\\IdeaProjects\\TodayUs\\Dockerfile\")",
+      "Bash(railway login:*)",
+      "Bash(railway whoami:*)",
+      "Bash(git push:*)",
+      "Bash(.gradlew signingReport)",
+      "Bash(dart run:*)",
+      "Bash(ssh:*)",
+      "Bash(chmod:*)",
+      "Bash(git checkout:*)",
+      "Bash(git stash:*)"
     ],
     "deny": [],
-    "defaultMode": "acceptEdits"
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "C:\\c\\Users\\abcd8\\IdeaProjects\\TodayUs",
+      "C:\\c\\Users\\dlwns\\IdeaProjects\\TodayUs\\frontend"
+    ]
   }
 }

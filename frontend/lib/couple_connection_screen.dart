@@ -360,17 +360,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFE4E1), // 연한 핑크
-              Color(0xFFFFF0F5), // 아주 연한 핑크
-              Colors.white,
-            ],
-          ),
-        ),
+        color: const Color(0xFFF8F9FA),
         child: SafeArea(
           child: _isLoading
               ? _buildLoadingView()
@@ -388,12 +378,12 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
+            color: const Color(0xFF667eea).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(40),
           ),
           child: const CircularProgressIndicator(
             strokeWidth: 3,
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B8A)),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
           ),
         ),
         const SizedBox(height: 20),
@@ -430,87 +420,70 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 20),
-          // Enhanced header section
-          Container(
-            padding: const EdgeInsets.all(30),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(25),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFFFB6C1),
-                        Color(0xFFFF6B8A),
-                      ],
+          // Clean header section
+          Column(
+            children: [
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF667eea),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
-                    borderRadius: BorderRadius.circular(50),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.favorite,
-                    size: 50,
-                    color: Colors.white,
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  '파트너와 연결하기',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Color(0xFF2D3748),
-                  ),
-                  textAlign: TextAlign.center,
+                child: const Icon(
+                  Icons.favorite,
+                  size: 60,
+                  color: Colors.white,
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  '초대 코드로 소중한 사람과\n특별한 순간들을 함께 나눠보세요 💕',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey[600],
-                    height: 1.5,
-                  ),
-                  textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 30),
+              const Text(
+                '파트너와 연결하기',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF2D3748),
                 ),
-              ],
-            ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                '초대 코드로 소중한 사람과\n특별한 순간들을 함께 나눠보세요',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
           const SizedBox(height: 30),
           
-          // Generate invite code section with enhanced design
+          // Generate invite code section
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                  const Color(0xFFFFB6C1).withValues(alpha: 0.05),
-                ],
-              ),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFF6B8A).withValues(alpha: 0.2),
-                width: 1.5,
+                color: Colors.grey[200]!,
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -520,7 +493,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B8A),
+                        color: const Color(0xFF667eea),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -623,21 +596,21 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           
           const SizedBox(height: 30),
           
-          // Enhanced enter invite code section
+          // Enter invite code section
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFFB6C1).withValues(alpha: 0.3),
-                width: 1.5,
+                color: Colors.grey[200]!,
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -649,7 +622,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFFB6C1),
+                        color: const Color(0xFF667eea),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: const Icon(
@@ -680,13 +653,13 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                 const SizedBox(height: 20),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF5F5),
+                    color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
                       color: _inviteCodeError != null 
                           ? Colors.red.withValues(alpha: 0.5)
-                          : const Color(0xFFFFB6C1).withValues(alpha: 0.3),
-                      width: 1.5,
+                          : Colors.grey[300]!,
+                      width: 1,
                     ),
                   ),
                   child: TextField(
@@ -724,14 +697,14 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
+                        Color(0xFFFF6B8A),
                         Color(0xFFFFB6C1),
-                        Color(0xFFFF91A4),
                       ],
                     ),
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFB6C1).withValues(alpha: 0.3),
+                        color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
@@ -774,7 +747,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 20),
-          // Enhanced waiting header
+          // Waiting header
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
@@ -782,9 +755,9 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFFB6C1).withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -797,23 +770,18 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                       width: 100,
                       height: 100,
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            const Color(0xFFFFB6C1).withValues(alpha: 0.3),
-                            const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                          ],
-                        ),
+                        color: const Color(0xFF667eea).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(50),
                       ),
                       child: const CircularProgressIndicator(
                         strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFF6B8A)),
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
                       ),
                     ),
                     const Icon(
                       Icons.hourglass_empty,
                       size: 40,
-                      color: Color(0xFFFF6B8A),
+                      color: Color(0xFF667eea),
                     ),
                   ],
                 ),
@@ -844,7 +812,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
+                        color: const Color(0xFF667eea).withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(15),
                       ),
                       child: Row(
@@ -856,7 +824,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               valueColor: AlwaysStoppedAnimation<Color>(
-                                const Color(0xFFFF6B8A),
+                                const Color(0xFF667eea),
                               ),
                             ),
                           ),
@@ -879,21 +847,23 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           ),
           const SizedBox(height: 30),
           
-          // Enhanced invite code display
+          // Invite code display
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                  const Color(0xFFFFB6C1).withValues(alpha: 0.05),
-                ],
-              ),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFF6B8A).withValues(alpha: 0.2),
-                width: 1.5,
+                color: Colors.grey[200]!,
+                width: 1,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -923,19 +893,12 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                     vertical: 20,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: Colors.grey[50],
                     borderRadius: BorderRadius.circular(15),
                     border: Border.all(
-                      color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
+                      color: const Color(0xFF667eea),
                       width: 2,
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
                   ),
                   child: Text(
                     _connection.inviteCode ?? '',
@@ -943,7 +906,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                       fontSize: 36,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 6,
-                      color: Color(0xFFFF6B8A),
+                      color: Color(0xFF667eea),
                     ),
                   ),
                 ),
@@ -992,16 +955,16 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           
           const SizedBox(height: 24),
           
-          // Enhanced timer display
+          // Timer display
           if (_timeRemaining.isNotEmpty) ...[
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFECEC),
+                color: Colors.grey[50],
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(
-                  color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
-                  width: 1.5,
+                  color: Colors.grey[300]!,
+                  width: 1,
                 ),
               ),
               child: Row(
@@ -1010,12 +973,12 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF6B8A).withValues(alpha: 0.2),
+                      color: const Color(0xFF667eea).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(
                       Icons.timer,
-                      color: Color(0xFFFF6B8A),
+                      color: Color(0xFF667eea),
                       size: 20,
                     ),
                   ),
@@ -1036,7 +999,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Color(0xFFFF6B8A),
+                          color: Color(0xFF667eea),
                         ),
                       ),
                     ],
@@ -1047,32 +1010,23 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
             const SizedBox(height: 24),
           ],
           
-          // Enhanced cancel button
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
-                width: 1.5,
+          // Cancel button
+          OutlinedButton.icon(
+            onPressed: _cancelInvite,
+            icon: const Icon(Icons.cancel_outlined, size: 20),
+            label: const Text(
+              '초대 취소',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
               ),
             ),
-            child: OutlinedButton.icon(
-              onPressed: _cancelInvite,
-              icon: const Icon(Icons.cancel_outlined, size: 20),
-              label: const Text(
-                '초대 취소',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFFF6B8A),
-                side: BorderSide.none,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.grey[600],
+              side: BorderSide(color: Colors.grey[300]!),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
             ),
           ),
@@ -1093,21 +1047,13 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                  const Color(0xFFFFB6C1).withValues(alpha: 0.05),
-                  Colors.white,
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
+              color: Colors.white,
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFF6B8A).withValues(alpha: 0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -1118,18 +1064,13 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFFF6B8A),
-                        Color(0xFFFFB6C1),
-                      ],
-                    ),
+                    color: const Color(0xFF667eea),
                     borderRadius: BorderRadius.circular(60),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF6B8A).withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
@@ -1164,21 +1105,21 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           ),
           const SizedBox(height: 30),
           
-          // Enhanced partner info card
+          // Partner info card
           Container(
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFFFF6B8A).withValues(alpha: 0.2),
-                width: 1.5,
+                color: Colors.grey[200]!,
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -1189,17 +1130,12 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                   width: 90,
                   height: 90,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFFFB6C1),
-                        Color(0xFFFF91A4),
-                      ],
-                    ),
+                    color: const Color(0xFF667eea),
                     borderRadius: BorderRadius.circular(45),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFFB6C1).withValues(alpha: 0.4),
-                        blurRadius: 15,
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
                     ],
@@ -1223,7 +1159,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B8A).withValues(alpha: 0.1),
+                    color: const Color(0xFF667eea).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -1240,7 +1176,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFFF5F5),
+                      color: Colors.grey[50],
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
@@ -1270,7 +1206,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           
           const SizedBox(height: 30),
           
-          // Enhanced action buttons
+          // Action buttons
           Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -1315,31 +1251,22 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
           
           const SizedBox(height: 16),
           
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
-                width: 1.5,
+          OutlinedButton.icon(
+            onPressed: _disconnect,
+            icon: const Icon(Icons.link_off, size: 20),
+            label: const Text(
+              '연결 해제',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
               ),
             ),
-            child: OutlinedButton.icon(
-              onPressed: _disconnect,
-              icon: const Icon(Icons.link_off, size: 20),
-              label: const Text(
-                '연결 해제',
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFFF6B8A),
-                side: BorderSide.none,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.red,
+              side: BorderSide(color: Colors.red.withValues(alpha: 0.5)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
               ),
             ),
           ),
@@ -1356,7 +1283,7 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Enhanced error state
+          // Error state
           Container(
             padding: const EdgeInsets.all(30),
             decoration: BoxDecoration(
@@ -1364,9 +1291,9 @@ class _CoupleConnectionScreenState extends State<CoupleConnectionScreen> {
               borderRadius: BorderRadius.circular(25),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.red.withValues(alpha: 0.1),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
