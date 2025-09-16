@@ -2,8 +2,8 @@
 
 ## 설정된 환경 변수
 ```
-AWS_ACCESS_KEY=AKIATTI7CMBD6GTJ5WMX
-AWS_SECRET_KEY=WzrwGUhxF+GUcGGMoR6deXBwjKDqgzTlXBdIUllJ
+AWS_ACCESS_KEY=your-aws-access-key
+AWS_SECRET_KEY=your-aws-secret-key
 AWS_REGION=ap-northeast-2
 AWS_S3_BUCKET=todayus
 AWS_S3_PROFILE_PATH=profile-images/

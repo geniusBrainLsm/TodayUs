@@ -106,7 +106,7 @@ AWS 액세스 유형: 액세스 키 - 프로그래밍 방식 액세스
 
 ```bash
 # AWS S3 설정
-AWS_ACCESS_KEY=AKIA...your_access_key
+AWS_ACCESS_KEY=your-aws-access-key
 AWS_SECRET_KEY=your_secret_access_key
 AWS_REGION=ap-northeast-2
 AWS_S3_BUCKET=todayus-app-images
