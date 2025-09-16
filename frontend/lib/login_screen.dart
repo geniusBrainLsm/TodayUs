@@ -2,10 +2,90 @@ import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http; // Import http package
 import 'dart:convert'; // For jsonEncode and jsonDecode
+import 'dart:math'; // For pi constant
 import 'config/api_endpoints.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // JWT 토큰 저장용
 import 'package:url_launcher/url_launcher.dart'; // 브라우저 열기용
-import 'debug_key_hash.dart';
+
+// Google Logo CustomPainter (improved)
+class GoogleLogoPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final scale = size.width / 48.0;
+    
+    // Red path (top-left segment) - fixed to connect properly
+    final redPaint = Paint()
+      ..color = const Color(0xFFEA4335)
+      ..style = PaintingStyle.fill;
+    
+    final redPath = Path()
+      ..moveTo(24 * scale, 9.5 * scale)
+      ..cubicTo(27.54 * scale, 9.5 * scale, 30.71 * scale, 10.72 * scale, 33.21 * scale, 12.6 * scale)
+      ..lineTo(40.06 * scale, 6.25 * scale)
+      ..cubicTo(35.9 * scale, 2.38 * scale, 30.47 * scale, 0, 24 * scale, 0)
+      ..cubicTo(14.62 * scale, 0, 6.51 * scale, 5.38 * scale, 2.56 * scale, 13.22 * scale)
+      ..lineTo(10.54 * scale, 19.41 * scale)
+      ..cubicTo(12.44 * scale, 13.72 * scale, 17.74 * scale, 9.5 * scale, 24 * scale, 9.5 * scale)
+      ..close();
+    
+    canvas.drawPath(redPath, redPaint);
+    
+    // Blue path (top-right segment)
+    final bluePaint = Paint()
+      ..color = const Color(0xFF4285F4)
+      ..style = PaintingStyle.fill;
+    
+    final bluePath = Path()
+      ..moveTo(46.98 * scale, 24.55 * scale)
+      ..cubicTo(46.98 * scale, 22.98 * scale, 46.83 * scale, 21.46 * scale, 46.6 * scale, 20 * scale)
+      ..lineTo(24 * scale, 20 * scale)
+      ..lineTo(24 * scale, 29.02 * scale)
+      ..lineTo(36.94 * scale, 29.02 * scale)
+      ..cubicTo(36.36 * scale, 31.98 * scale, 34.68 * scale, 34.5 * scale, 32.16 * scale, 36.2 * scale)
+      ..lineTo(39.89 * scale, 42.2 * scale)
+      ..cubicTo(44.4 * scale, 38.02 * scale, 46.98 * scale, 31.84 * scale, 46.98 * scale, 24.55 * scale)
+      ..close();
+    
+    canvas.drawPath(bluePath, bluePaint);
+    
+    // Yellow path (bottom-left segment)
+    final yellowPaint = Paint()
+      ..color = const Color(0xFFFBBC05)
+      ..style = PaintingStyle.fill;
+    
+    final yellowPath = Path()
+      ..moveTo(10.53 * scale, 28.59 * scale)
+      ..cubicTo(10.05 * scale, 27.14 * scale, 9.77 * scale, 25.6 * scale, 9.77 * scale, 24 * scale)
+      ..cubicTo(9.77 * scale, 22.4 * scale, 10.04 * scale, 20.86 * scale, 10.53 * scale, 19.41 * scale)
+      ..lineTo(2.55 * scale, 13.22 * scale)
+      ..cubicTo(0.92 * scale, 16.46 * scale, 0, 20.12 * scale, 0, 24 * scale)
+      ..cubicTo(0, 27.88 * scale, 0.92 * scale, 31.54 * scale, 2.56 * scale, 34.78 * scale)
+      ..lineTo(10.53 * scale, 28.59 * scale)
+      ..close();
+    
+    canvas.drawPath(yellowPath, yellowPaint);
+    
+    // Green path (bottom-right segment)
+    final greenPaint = Paint()
+      ..color = const Color(0xFF34A853)
+      ..style = PaintingStyle.fill;
+    
+    final greenPath = Path()
+      ..moveTo(24 * scale, 48 * scale)
+      ..cubicTo(30.48 * scale, 48 * scale, 35.93 * scale, 45.87 * scale, 39.89 * scale, 42.19 * scale)
+      ..lineTo(32.16 * scale, 36.19 * scale)
+      ..cubicTo(30.01 * scale, 37.64 * scale, 27.24 * scale, 38.49 * scale, 24 * scale, 38.49 * scale)
+      ..cubicTo(17.74 * scale, 38.49 * scale, 12.43 * scale, 34.27 * scale, 10.53 * scale, 28.58 * scale)
+      ..lineTo(2.55 * scale, 34.77 * scale)
+      ..cubicTo(6.51 * scale, 42.61 * scale, 14.62 * scale, 48 * scale, 24 * scale, 48 * scale)
+      ..close();
+    
+    canvas.drawPath(greenPath, greenPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -23,7 +103,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   bool _isLoading = false;
   String? _errorMessage;
-  String? _debugKeyHash;
 
   @override
   void initState() {
@@ -34,7 +113,6 @@ class _LoginScreenState extends State<LoginScreen>
 
     // Kakao SDK는 main.dart에서 이미 초기화됨
     _checkBackendStatus();
-    _getDebugKeyHash(); // 실제 키 해시 가져오기
 
 
     _fadeController = AnimationController(
@@ -119,18 +197,6 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  Future<void> _getDebugKeyHash() async {
-    try {
-      final keyHash = await DebugKeyHash.getKeyHash();
-      if (keyHash != null) {
-        setState(() {
-          _debugKeyHash = keyHash;
-        });
-      }
-    } catch (e) {
-      print('Debug key hash error: $e');
-    }
-  }
 
   void _startAnimations() {
     _fadeController.forward();
@@ -433,51 +499,6 @@ class _LoginScreenState extends State<LoginScreen>
 
                     const SizedBox(height: 60),
 
-                    // 디버그 키 해시 표시
-                    if (_debugKeyHash != null) ...[
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.green.withOpacity(0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '🔑 Debug Key Hash:',
-                              style: TextStyle(
-                                color: Color(0xFF2D3748),
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            SelectableText(
-                              _debugKeyHash!,
-                              style: const TextStyle(
-                                color: Color(0xFF2D3748),
-                                fontSize: 10,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Copy this to Kakao Console',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
 
                     // 오류 메시지
                     if (_errorMessage != null) ...[
@@ -517,15 +538,16 @@ class _LoginScreenState extends State<LoginScreen>
                     // Kakao Login Button
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 52,
                       child: GestureDetector(
                         onTap: _isLoading ? null : _loginWithKakao,
                         child: Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
+                            color: const Color(0xFFFEE500), // Kakao Yellow
+                            borderRadius: BorderRadius.circular(8),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1), // Corrected withValues to withOpacity
+                                color: Colors.black.withOpacity(0.1),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
@@ -533,56 +555,68 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           child: _isLoading
                               ? Container(
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFFE812).withOpacity(0.7), // Corrected withValues to withOpacity
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Center(
-                              child: SizedBox(
-                                height: 24,
-                                width: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Color(0xFF191919),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEE500).withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
+                                  child: const Center(
+                                    child: SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(
+                                          Color(0xFF000000),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    // Kakao Symbol
+                                    Image.asset(
+                                      'assets/images/kakao_symbol.png',
+                                      width: 20,
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      '카카오 로그인',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF000000),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                          )
-                              : ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.asset(
-                              'assets/images/kakao_login_large_narrow.png',
-                              fit: BoxFit.cover,
-                              height: 56,
-                            ),
-                          ),
                         ),
                       ),
                     ),
 
                     const SizedBox(height: 16),
 
-                    // Google Login Button (Google Branding Guidelines)
+                    // Google Login Button
                     SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 52,
                       child: GestureDetector(
                         onTap: _isLoading ? null : _loginWithGoogle,
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4), // Google uses 4dp radius
+                            color: const Color(0xFFFFFFFF), // White background
+                            borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: const Color(0xFFDDDDDD),
+                              color: const Color(0xFFDADCE0), // Light gray border like Google
                               width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
-                                blurRadius: 1,
-                                offset: const Offset(0, 1),
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
@@ -599,101 +633,31 @@ class _LoginScreenState extends State<LoginScreen>
                                     ),
                                   ),
                                 )
-                              : Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    // Google G Logo (using SVG colors in Container)
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: const BoxDecoration(
-                                        shape: BoxShape.circle,
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      // Google G Logo (Official SVG)
+                                      Container(
+                                        width: 18,
+                                        height: 18,
+                                        child: CustomPaint(
+                                          painter: GoogleLogoPainter(),
+                                          size: const Size(18, 18),
+                                        ),
                                       ),
-                                      child: Stack(
-                                        children: [
-                                          // Blue section
-                                          Positioned(
-                                            top: 0,
-                                            left: 0,
-                                            child: Container(
-                                              width: 20,
-                                              height: 10,
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFF4285F4),
-                                                borderRadius: BorderRadius.only(
-                                                  topLeft: Radius.circular(10),
-                                                  topRight: Radius.circular(10),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          // Red section
-                                          Positioned(
-                                            top: 10,
-                                            left: 0,
-                                            child: Container(
-                                              width: 10,
-                                              height: 10,
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFFEA4335),
-                                                borderRadius: BorderRadius.only(
-                                                  bottomLeft: Radius.circular(10),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          // Yellow section
-                                          Positioned(
-                                            top: 10,
-                                            right: 0,
-                                            child: Container(
-                                              width: 10,
-                                              height: 10,
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFFFBBC05),
-                                                borderRadius: BorderRadius.only(
-                                                  bottomRight: Radius.circular(10),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          // Green section (small part)
-                                          Positioned(
-                                            top: 5,
-                                            right: 2,
-                                            child: Container(
-                                              width: 6,
-                                              height: 10,
-                                              decoration: const BoxDecoration(
-                                                color: Color(0xFF34A853),
-                                              ),
-                                            ),
-                                          ),
-                                          // Center white G shape
-                                          const Center(
-                                            child: Text(
-                                              'G',
-                                              style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'Sign in with Google',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w500,
+                                          color: Color(0xFF3C4043),
+                                        ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Google로 로그인',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Color(0xFF3C4043), // Google text color
-                                        fontFamily: 'Roboto', // Google uses Roboto
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                         ),
                       ),
