@@ -50,6 +50,28 @@ public class EnvironmentConfig {
         } else {
             log.info("   - Status: ❌ NOT CONFIGURED");
         }
+
+        // AWS S3
+        log.info("☁️  AWS S3 Configuration:");
+        String awsAccessKey = environment.getProperty("aws.access-key");
+        String awsSecretKey = environment.getProperty("aws.secret-key");
+        String awsRegion = environment.getProperty("aws.region");
+        String awsBucket = environment.getProperty("aws.s3.bucket");
+
+        if (awsAccessKey != null && awsSecretKey != null && awsBucket != null) {
+            log.info("   - Access Key: {}****", awsAccessKey.substring(0, Math.min(8, awsAccessKey.length())));
+            log.info("   - Region: {}", awsRegion);
+            log.info("   - Bucket: {}", awsBucket);
+            log.info("   - Profile Path: {}", environment.getProperty("aws.s3.profile-image-path"));
+            log.info("   - Diary Path: {}", environment.getProperty("aws.s3.diary-image-path"));
+            log.info("   - Status: ✅ CONFIGURED");
+        } else {
+            log.info("   - Status: ❌ NOT CONFIGURED");
+            log.info("   - Missing: {}{}{}",
+                    awsAccessKey == null ? "ACCESS_KEY " : "",
+                    awsSecretKey == null ? "SECRET_KEY " : "",
+                    awsBucket == null ? "BUCKET " : "");
+        }
         
         // Server
         log.info("🚀 Server Configuration:");
