@@ -93,7 +93,8 @@
       "Bash(.gradlew signingReport)",
       "Bash(dart run:*)",
       "Bash(ssh:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
