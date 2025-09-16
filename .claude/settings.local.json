@@ -89,12 +89,17 @@
       "Bash(del \"C:\\Users\\abcd8\\IdeaProjects\\TodayUs\\Dockerfile\")",
       "Bash(railway login:*)",
       "Bash(railway whoami:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(.gradlew signingReport)",
+      "Bash(dart run:*)",
+      "Bash(ssh:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits",
     "additionalDirectories": [
-      "C:\\c\\Users\\abcd8\\IdeaProjects\\TodayUs"
+      "C:\\c\\Users\\abcd8\\IdeaProjects\\TodayUs",
+      "C:\\c\\Users\\dlwns\\IdeaProjects\\TodayUs\\frontend"
     ]
   }
 }
