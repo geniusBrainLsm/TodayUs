@@ -8,11 +8,23 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy Backend') {
             steps {
                 sh '''
-                    chmod +x scripts/deploy.sh
-                    ./scripts/deploy.sh
+                    cd /home/ubuntu/TodayUs
+                    git pull origin main
+                    docker-compose stop backend || true
+                    docker-compose build --no-cache backend
+                    docker-compose up -d backend jenkins
+                '''
+            }
+        }
+
+        stage('Health Check') {
+            steps {
+                sh '''
+                    sleep 30
+                    curl -f http://localhost:8080/actuator/health || exit 1
                 '''
             }
         }
@@ -20,11 +32,11 @@ pipeline {
 
     post {
         success {
-            echo '🎉 Full stack deployment successful!'
+            echo '🎉 Backend deployment successful!'
         }
         failure {
             echo '❌ Deployment failed!'
-            sh 'docker-compose logs'
+            sh 'docker-compose logs backend'
         }
     }
 }
