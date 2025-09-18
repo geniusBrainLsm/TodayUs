@@ -4,6 +4,7 @@ import 'screens/diary/diary_list_screen.dart';
 import 'screens/diary/diary_write_screen.dart';
 import 'screens/timeline/timeline_screen.dart';
 import 'screens/profile/profile_screen.dart';
+import 'services/diary_service.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -12,15 +13,58 @@ class MainLayout extends StatefulWidget {
   State<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
+class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   int _currentIndex = 0;
-  
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const DiaryListScreen(),
-    const TimelineScreen(),
-    const ProfileScreen(),
-  ];
+  bool _hasTodayDiary = false;
+  final DiaryService _diaryService = DiaryService();
+
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    // 스크린 초기화 - 홈스크린에 콜백 전달
+    _screens = [
+      HomeScreen(onDiaryStateChanged: _checkTodayDiary),
+      const DiaryListScreen(),
+      const TimelineScreen(),
+      const ProfileScreen(),
+    ];
+
+    _checkTodayDiary();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    // 앱이 포그라운드로 돌아올 때 일기 상태 업데이트
+    if (state == AppLifecycleState.resumed) {
+      _checkTodayDiary();
+    }
+  }
+
+  /// 오늘 일기 존재 여부 확인
+  Future<void> _checkTodayDiary() async {
+    try {
+      final hasTodayDiary = await _diaryService.hasTodayDiary();
+      if (mounted) {
+        setState(() {
+          _hasTodayDiary = hasTodayDiary;
+        });
+      }
+    } catch (e) {
+      print('오늘 일기 확인 오류: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,14 +132,20 @@ class _MainLayoutState extends State<MainLayout> {
           ),
         ),
       ),
-      floatingActionButton: _currentIndex == 1 // 일기 탭에서만 보이도록
+      floatingActionButton: _currentIndex == 1 && !_hasTodayDiary // 일기 탭에서만 & 오늘 일기가 없을 때만 보이도록
           ? FloatingActionButton(
               onPressed: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) => const DiaryWriteScreen(),
                   ),
-                );
+                ).then((result) {
+                  // 일기 작성 화면에서 돌아왔을 때 상태 업데이트
+                  if (result is Map && result['diaryCreated'] == true) {
+                    print('🟢 MainLayout: 일기 작성 완료 - 상태 업데이트');
+                  }
+                  _checkTodayDiary();
+                });
               },
               backgroundColor: Colors.black87,
               foregroundColor: Colors.white,
