@@ -7,6 +7,7 @@ import '../../services/couple_message_service.dart';
 import '../../services/weekly_feedback_service.dart';
 import '../../services/milestone_service.dart';
 import '../../services/custom_anniversary_service.dart';
+import '../../services/daily_message_service.dart';
 import '../../widgets/couple_message_popup.dart';
 import '../diary/diary_write_screen.dart';
 import '../diary/diary_detail_screen.dart';
@@ -15,7 +16,9 @@ import '../weekly_feedback/weekly_feedback_history_screen.dart';
 import '../../config/environment.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onDiaryStateChanged;
+
+  const HomeScreen({super.key, this.onDiaryStateChanged});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -42,6 +45,8 @@ class _HomeScreenState extends State<HomeScreen>
   Map<String, dynamic>? _todaysMilestone;
   List<Map<String, dynamic>> _todaysCustomAnniversaries = [];
   bool _hasAnyTodaysAnniversary = false;
+  String? _gptDailyMessage;
+  bool _hasTodayDiary = false;
 
   @override
   void initState() {
@@ -65,6 +70,8 @@ class _HomeScreenState extends State<HomeScreen>
     _loadData();
     _checkDiaryWritePermission();
     _checkForCoupleMessage();
+    _loadGptDailyMessage();
+    _checkTodayDiary();
     _startPeriodicRefresh();
   }
 
@@ -84,6 +91,7 @@ class _HomeScreenState extends State<HomeScreen>
     if (state == AppLifecycleState.resumed) {
       print('🟡 앱이 포그라운드로 복귀 - 일기 상태 업데이트');
       _refreshCoupleSummary();
+      _checkTodayDiary();
     }
   }
 
@@ -110,6 +118,40 @@ class _HomeScreenState extends State<HomeScreen>
       print('🟡 주기적 커플 요약 새로고침');
       _refreshCoupleSummary();
     });
+  }
+
+  /// GPT 일일 메시지 로딩 (매일 00시에 새로 생성됨)
+  Future<void> _loadGptDailyMessage() async {
+    try {
+      print('🟡 GPT 일일 메시지 로딩 시작');
+      final message = await DailyMessageService.getTodaysDailyMessage();
+
+      if (mounted && message != null) {
+        setState(() {
+          _gptDailyMessage = message;
+        });
+        print('🟢 GPT 일일 메시지 로딩 완료: $message');
+      }
+    } catch (e) {
+      print('🔴 GPT 일일 메시지 로딩 오류: $e');
+    }
+  }
+
+  /// 오늘 일기 존재 여부 확인
+  Future<void> _checkTodayDiary() async {
+    try {
+      print('🟡 오늘 일기 존재 여부 확인 시작');
+      final hasTodayDiary = await _diaryService.hasTodayDiary();
+
+      if (mounted) {
+        setState(() {
+          _hasTodayDiary = hasTodayDiary;
+        });
+        print('🟢 오늘 일기 존재 여부: $hasTodayDiary');
+      }
+    } catch (e) {
+      print('🔴 오늘 일기 확인 오류: $e');
+    }
   }
 
   Future<void> _checkDiaryWritePermission() async {
@@ -405,34 +447,21 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // 일일 메시지 생성 (기념일이 있으면 기념일 메시지, 없으면 일반 메시지)
+  // 일일 메시지 생성 (기념일이 있으면 기념일 메시지, 없으면 GPT 생성 메시지)
   String _getDailyMessage() {
     // 자동 기념일이 있으면 기념일 메시지 우선
     if (_todaysMilestone != null) {
       return MilestoneService.getMilestoneMessage(_todaysMilestone!);
     }
-    
+
     // 사용자 정의 기념일이 있으면 커스톰 기념일 메시지
     if (_todaysCustomAnniversaries.isNotEmpty) {
       final anniversary = _todaysCustomAnniversaries.first;
       return CustomAnniversaryService.getCustomAnniversaryMessage(anniversary);
     }
-    
-    // 기본 일일 메시지들
-    final messages = [
-      "오늘도 서로를 향한 따뜻한 마음으로 하루를 시작해보세요! 💕",
-      "작은 관심과 배려가 큰 사랑을 만들어갑니다 🌟",
-      "함께하는 모든 순간이 소중한 추억이 되고 있어요 💝",
-      "서로의 다름을 이해하며 더 깊은 사랑을 나누세요 🤗",
-      "오늘 하루도 서로에게 힘이 되는 연인이 되어보아요 ✨",
-      "작은 감사의 마음을 전하는 것만으로도 충분해요 🙏",
-      "함께 웃고 함께 꿈꾸는 오늘이 되길 바라요 😊",
-      "서로의 꿈을 응원하며 더 단단한 사랑을 만들어가세요 🌈",
-    ];
-    
-    final today = DateTime.now();
-    final messageIndex = today.day % messages.length;
-    return messages[messageIndex];
+
+    // GPT 생성된 일일 메시지 (로딩 중이면 기본 메시지)
+    return _gptDailyMessage ?? "오늘도 서로를 향한 따뜻한 마음으로 하루를 시작해보세요! 💕";
   }
 
   Widget _buildAnniversaryCard() {
@@ -1037,8 +1066,6 @@ class _HomeScreenState extends State<HomeScreen>
         
         const SizedBox(height: 16),
         
-        // Quick Stats Cards (프로필에서 이동)
-        _buildQuickStatsCards(),
       ],
     );
   }
@@ -1330,7 +1357,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           const SizedBox(height: 12),
           Text(
-            _coupleSummary,
+            _coupleSummary.replaceAll('\\n', '\n'),
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -1343,22 +1370,31 @@ class _HomeScreenState extends State<HomeScreen>
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/diary-write');
-              },
+              onPressed: _hasTodayDiary
+                ? null  // 오늘 일기가 있으면 비활성화
+                : () async {
+                    final result = await Navigator.pushNamed(context, '/diary-write');
+                    if (result is Map && result['diaryCreated'] == true) {
+                      // 일기 작성 완료 시 상태 업데이트
+                      _checkTodayDiary();
+                      // 메인레이아웃에도 알림
+                      widget.onDiaryStateChanged?.call();
+                    }
+                  },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.black87,
-                foregroundColor: Colors.white,
+                backgroundColor: _hasTodayDiary ? Colors.grey[400] : Colors.black87,
+                foregroundColor: _hasTodayDiary ? Colors.grey[600] : Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: const Text(
-                '오늘 일기 작성하기',
+              child: Text(
+                _hasTodayDiary ? '오늘 일기를 이미 작성했어요' : '오늘 일기 작성하기',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: _hasTodayDiary ? Colors.grey[600] : Colors.white,
                 ),
               ),
             ),
@@ -1929,39 +1965,39 @@ class _HomeScreenState extends State<HomeScreen>
             Color(0xFFFFB6C1),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFFF6B8A).withValues(alpha: 0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: const Color(0xFFFF6B8A).withValues(alpha: 0.2),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           onTap: () {
             Navigator.pushNamed(context, '/couple-message-create');
           },
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
                     Icons.auto_fix_high,
                     color: Colors.white,
-                    size: 28,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1969,18 +2005,18 @@ class _HomeScreenState extends State<HomeScreen>
                       const Text(
                         '💕 대신 전해주기',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         'AI가 마음을 따뜻하게 전달해드려요',
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: Colors.white.withValues(alpha: 0.9),
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ],
@@ -1989,7 +2025,7 @@ class _HomeScreenState extends State<HomeScreen>
                 Icon(
                   Icons.arrow_forward_ios,
                   color: Colors.white.withValues(alpha: 0.8),
-                  size: 16,
+                  size: 14,
                 ),
               ],
             ),

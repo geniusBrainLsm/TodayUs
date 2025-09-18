@@ -57,6 +57,17 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
     super.dispose();
   }
 
+  /// 이미지 URL 처리 (완전한 URL인지 확인)
+  String _getImageUrl(String imageUrl) {
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      // 이미 완전한 URL인 경우 (S3 URL)
+      return imageUrl;
+    } else {
+      // 상대 경로인 경우 baseUrl 추가
+      return '${EnvironmentConfig.baseUrl}$imageUrl';
+    }
+  }
+
   Future<void> _loadDiary() async {
     setState(() {
       _isLoading = true;
@@ -480,7 +491,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Image.network(
-                  '${EnvironmentConfig.baseUrl}${_diary!['imageUrl']}',
+                  _getImageUrl(_diary!['imageUrl']),
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
