@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -268,6 +269,24 @@ public class DiaryController {
             
         } catch (Exception e) {
             log.error("Error getting couple summary for user {}: {}", user.getEmail(), e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/today/exists")
+    public ResponseEntity<Map<String, Boolean>> checkTodayDiaryExists(
+            @AuthenticationPrincipal CustomOAuth2User user) {
+
+        log.info("Checking today's diary existence for user: {}", user.getEmail());
+
+        try {
+            boolean exists = diaryService.hasTodayDiary(user.getEmail());
+            Map<String, Boolean> response = new HashMap<>();
+            response.put("exists", exists);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error checking today's diary for user {}: {}", user.getEmail(), e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
