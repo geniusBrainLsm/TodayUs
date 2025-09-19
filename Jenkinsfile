@@ -12,8 +12,8 @@ pipeline {
             steps {
                 sh '''
                     git pull origin main
-                    docker-compose stop backend || true
-                    docker-compose rm -f backend || true
+                    docker-compose down || true
+                    docker container rm -f todayus-backend || true
                     docker-compose build --no-cache backend
                     docker-compose up -d backend
                 '''
