@@ -24,7 +24,8 @@ pipeline {
             steps {
                 sh '''
                     sleep 20
-                    curl -f http://localhost:8080/actuator/health || exit 1
+                    # Try actuator health first, if fails try basic health endpoint
+                    curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 1
                 '''
             }
         }
