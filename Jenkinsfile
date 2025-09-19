@@ -11,11 +11,10 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sh '''
-                    cd /home/ubuntu/TodayUs
-                    git pull origin main
+                    cd /workspace
                     docker-compose stop backend || true
                     docker-compose build --no-cache backend
-                    docker-compose up -d backend jenkins
+                    docker-compose up -d backend
                 '''
             }
         }
@@ -36,7 +35,7 @@ pipeline {
         }
         failure {
             echo '❌ Deployment failed!'
-            sh 'docker-compose logs backend'
+            sh 'cd /workspace && docker-compose logs backend'
         }
     }
 }
