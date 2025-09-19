@@ -384,4 +384,21 @@ class DiaryService {
       return [];
     }
   }
+
+  /// 오늘 일기 작성 여부 확인
+  Future<bool> hasTodayDiary() async {
+    try {
+      final response = await ApiService.get(ApiEndpoints.todayDiaryExists);
+
+      if (ApiService.isSuccessful(response.statusCode)) {
+        final data = ApiService.parseResponse(response);
+        return data?['exists'] == true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      print('Error checking today diary existence: $e');
+      return false;
+    }
+  }
 }

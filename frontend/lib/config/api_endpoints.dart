@@ -71,6 +71,7 @@ class ApiEndpoints {
   static String get diaries => '$baseUrl/api/diaries';
   static String diaryById(int diaryId) => '$baseUrl/api/diaries/$diaryId';
   static String get recentDiaries => '$baseUrl/api/diaries/recent';
+  static String get todayDiaryExists => '$baseUrl/api/diaries/today/exists';
   
   /// 일기 통계 및 분석
   static String get emotionStats => '$baseUrl/api/diaries/emotions/stats';
