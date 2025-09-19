@@ -9,8 +9,22 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
+                // Complete workspace cleanup
+                sh 'rm -rf * .* || true'
+
                 checkout scm
-                echo 'Code checked out successfully'
+
+                // Verify checkout and show file structure
+                sh '''
+                    echo "=== Git status after checkout ==="
+                    git status
+                    echo "=== DiaryService.java exists? ==="
+                    ls -la backend/src/main/java/com/todayus/service/DiaryService.java || echo "FILE NOT FOUND"
+                    echo "=== Search for hasTodayDiary method ==="
+                    grep -n "hasTodayDiary" backend/src/main/java/com/todayus/service/DiaryService.java || echo "METHOD NOT FOUND"
+                '''
+
+                echo 'Code checked out and verified successfully'
             }
         }
 
