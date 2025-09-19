@@ -12,9 +12,23 @@ pipeline {
             steps {
                 sh '''
                     cd /workspace
-                    docker-compose stop backend || true
-                    docker-compose build --no-cache backend
-                    docker-compose up -d backend
+
+                    # Stop existing backend container
+                    docker stop todayus-backend || true
+                    docker rm todayus-backend || true
+
+                    # Build new backend image
+                    docker build -t todayus-backend ./backend
+
+                    # Run backend container
+                    docker run -d \
+                        --name todayus-backend \
+                        --network todayus_default \
+                        -p 8080:8080 \
+                        -e DB_URL=jdbc:postgresql://todayus-postgres:5432/todayus \
+                        -e DB_USERNAME=todayus \
+                        -e DB_PASSWORD=1234 \
+                        todayus-backend
                 '''
             }
         }
@@ -35,7 +49,7 @@ pipeline {
         }
         failure {
             echo '❌ Deployment failed!'
-            sh 'cd /workspace && docker-compose logs backend'
+            sh 'docker logs todayus-backend || echo "No backend container logs available"'
         }
     }
 }
