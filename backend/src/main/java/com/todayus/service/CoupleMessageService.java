@@ -28,6 +28,7 @@ public class CoupleMessageService {
     private final CoupleRepository coupleRepository;
     private final UserRepository userRepository;
     private final AIAnalysisService aiAnalysisService;
+    private final NotificationService notificationService;
     
     private static final long MAX_WEEKLY_MESSAGES = 1; // 주당 1개 제한
     
@@ -119,15 +120,15 @@ public class CoupleMessageService {
     }
     
     /**
-     * 사용자의 주간 사용량 조회 (테스트용: 24시간 기준)
+     * 사용자의 주간 사용량 조회
      */
     @Transactional(readOnly = true)
     public CoupleMessageDto.WeeklyUsage getWeeklyUsage(String userEmail) {
         User user = getUserByEmail(userEmail);
-        LocalDateTime dayStart = LocalDateTime.now().minusDays(1); // 테스트용으로 24시간으로 변경
-        
-        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(user, dayStart);
-        
+        LocalDateTime weekStart = LocalDateTime.now().minusWeeks(1);
+
+        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(user, weekStart);
+
         return CoupleMessageDto.WeeklyUsage.of(usedCount, MAX_WEEKLY_MESSAGES);
     }
     
@@ -179,7 +180,14 @@ public class CoupleMessageService {
             message.setAiProcessedMessage(processedMessage);
             message.setStatus(CoupleMessage.MessageStatus.READY);
             coupleMessageRepository.save(message);
-            
+
+            // 파트너에게 알림 발송
+            try {
+                sendCoupleMessageNotification(sender, receiver, processedMessage);
+            } catch (Exception e) {
+                log.warn("대신 전해주기 알림 발송 실패: {}", e.getMessage());
+            }
+
             log.info("AI 메시지 처리 완료: {} -> '{}'", messageId, processedMessage);
             
         } catch (Exception e) {
@@ -200,7 +208,14 @@ public class CoupleMessageService {
             message.setAiProcessedMessage(message.getOriginalMessage());
             message.setStatus(CoupleMessage.MessageStatus.READY);
             coupleMessageRepository.save(message);
-            
+
+            // 폴백 처리 시에도 알림 발송
+            try {
+                sendCoupleMessageNotification(message.getSender(), message.getReceiver(), message.getOriginalMessage());
+            } catch (Exception e) {
+                log.warn("폴백 처리 알림 발송 실패: {}", e.getMessage());
+            }
+
             log.info("메시지 폴백 처리 완료: {}", messageId);
             
         } catch (Exception e) {
@@ -209,14 +224,14 @@ public class CoupleMessageService {
     }
     
     /**
-     * 주간 사용 제한 확인 (테스트용: 24시간 기준)
+     * 주간 사용 제한 확인
      */
     private void checkWeeklyUsageLimit(User sender) {
-        LocalDateTime dayStart = LocalDateTime.now().minusDays(1); // 테스트용으로 24시간으로 변경
-        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(sender, dayStart);
-        
+        LocalDateTime weekStart = LocalDateTime.now().minusWeeks(1);
+        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(sender, weekStart);
+
         if (usedCount >= MAX_WEEKLY_MESSAGES) {
-            throw new IllegalStateException("일간 사용 제한에 도달했습니다. 하루에 " + MAX_WEEKLY_MESSAGES + "개까지만 보낼 수 있습니다.");
+            throw new IllegalStateException("주간 사용 제한에 도달했습니다. 일주일에 " + MAX_WEEKLY_MESSAGES + "개까지만 보낼 수 있습니다.");
         }
     }
     
@@ -256,5 +271,24 @@ public class CoupleMessageService {
      */
     private User getPartner(Couple couple, User user) {
         return couple.getPartner(user);
+    }
+
+    /**
+     * 대신 전해주기 메시지 알림 발송
+     */
+    private void sendCoupleMessageNotification(User sender, User receiver, String messagePreview) {
+        try {
+            notificationService.sendCoupleMessageNotification(
+                    sender.getId(),
+                    sender.getNickname(),
+                    messagePreview
+            );
+
+            log.info("대신 전해주기 알림 발송 완료: {} -> {}", sender.getNickname(), receiver.getNickname());
+
+        } catch (Exception e) {
+            log.error("대신 전해주기 알림 발송 실패: {} -> {}, 오류: {}",
+                    sender.getNickname(), receiver.getNickname(), e.getMessage());
+        }
     }
 }

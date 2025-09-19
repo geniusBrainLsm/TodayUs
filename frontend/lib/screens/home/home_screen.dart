@@ -461,7 +461,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
 
     // GPT 생성된 일일 메시지 (로딩 중이면 기본 메시지)
-    return _gptDailyMessage ?? "오늘도 서로를 향한 따뜻한 마음으로 하루를 시작해보세요! 💕";
+    return _gptDailyMessage ?? "새로운 하루, 새로운 추억을 만들어보세요! ✨";
   }
 
   Widget _buildAnniversaryCard() {
