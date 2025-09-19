@@ -14,7 +14,7 @@ pipeline {
                     git pull origin main
                     docker-compose stop backend || true
                     docker-compose build --no-cache backend
-                    docker-compose up -d backend jenkins
+                    docker-compose up -d backend
                 '''
             }
         }
