@@ -36,6 +36,7 @@ public class DiaryService {
     private final CoupleRepository coupleRepository;
     private final AIAnalysisService aiAnalysisService;
     private final NotificationService notificationService;
+    private final CoupleSummaryService coupleSummaryService;
     
     public DiaryDto.Response createDiary(String userEmail, DiaryDto.CreateRequest request) {
         User user = findUserByEmail(userEmail);
@@ -264,8 +265,7 @@ public class DiaryService {
                 // 양쪽 모두 작성함 - AI 요약 생성
                 result.put("status", "BOTH_WRITTEN");
                 
-                List<Diary> todayDiaries = List.of(userTodayDiary.get(), partnerTodayDiary.get());
-                String aiSummary = aiAnalysisService.generateCoupleSummary(todayDiaries);
+                String aiSummary = coupleSummaryService.getTodaysCoupleSummary(couple);
                 result.put("summary", aiSummary);
                 
             } else if (userTodayDiary.isPresent() && partnerTodayDiary.isEmpty()) {
@@ -304,11 +304,7 @@ public class DiaryService {
             User user = findUserByEmail(userEmail);
             Couple couple = findCoupleByUser(user);
             
-            // 최근 10개의 일기를 가져옴
-            Pageable pageable = PageRequest.of(0, 10);
-            List<Diary> recentDiaries = diaryRepository.findRecentByCoupleOrderByCreatedAtDesc(couple, pageable);
-            
-            return aiAnalysisService.generateCoupleSummary(recentDiaries);
+            return coupleSummaryService.getTodaysCoupleSummary(couple);
             
         } catch (Exception e) {
             log.error("Error generating couple summary for user {}: {}", userEmail, e.getMessage(), e);
