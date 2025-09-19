@@ -47,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _hasAnyTodaysAnniversary = false;
   String? _gptDailyMessage;
   bool _hasTodayDiary = false;
+  bool _hasUnreadCoupleMessage = false;
 
   @override
   void initState() {
@@ -72,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen>
     _checkForCoupleMessage();
     _loadGptDailyMessage();
     _checkTodayDiary();
+    _checkForUnreadCoupleMessage();
     _startPeriodicRefresh();
   }
 
@@ -1007,6 +1009,36 @@ class _HomeScreenState extends State<HomeScreen>
           ),
         ],
       ),
+      floatingActionButton: _hasUnreadCoupleMessage
+        ? FloatingActionButton(
+            onPressed: _showCoupleMessagePopup,
+            backgroundColor: Colors.pink[400],
+            child: Stack(
+              children: [
+                const Icon(
+                  Icons.favorite,
+                  color: Colors.white,
+                  size: 28,
+                ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 12,
+                      minHeight: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          )
+        : null,
     );
   }
 
@@ -1060,10 +1092,9 @@ class _HomeScreenState extends State<HomeScreen>
         
         const SizedBox(height: 16),
         
-        // OO봇 관계 분석
-        if (_coupleSummary.isNotEmpty)
-          _buildSummaryCard(),
-        
+        // 액션 카드들
+        _buildActionCards(),
+
         const SizedBox(height: 16),
         
       ],
@@ -1318,8 +1349,24 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // OO봇 관계 분석 카드
-  Widget _buildSummaryCard() {
+  // 액션 카드들
+  Widget _buildActionCards() {
+    return Column(
+      children: [
+        // OO봇 관계 분석 카드
+        if (_coupleSummary.isNotEmpty)
+          _buildRelationshipAnalysisCard(),
+
+        const SizedBox(height: 16),
+
+        // 일기 작성 & 대신 전해주기 카드들
+        _buildQuickActionCards(),
+      ],
+    );
+  }
+
+  // OO봇 관계 분석 카드 (기존 _buildSummaryCard를 수정)
+  Widget _buildRelationshipAnalysisCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -1365,45 +1412,6 @@ class _HomeScreenState extends State<HomeScreen>
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 16),
-          // 일기 작성 버튼
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _hasTodayDiary
-                ? null  // 오늘 일기가 있으면 비활성화
-                : () async {
-                    final result = await Navigator.pushNamed(context, '/diary-write');
-                    if (result is Map && result['diaryCreated'] == true) {
-                      // 일기 작성 완료 시 상태 업데이트
-                      _checkTodayDiary();
-                      // 메인레이아웃에도 알림
-                      widget.onDiaryStateChanged?.call();
-                    }
-                  },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _hasTodayDiary ? Colors.grey[400] : Colors.black87,
-                foregroundColor: _hasTodayDiary ? Colors.grey[600] : Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                _hasTodayDiary ? '오늘 일기를 이미 작성했어요' : '오늘 일기 작성하기',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: _hasTodayDiary ? Colors.grey[600] : Colors.white,
-                ),
-              ),
-            ),
-          ),
-          
-          const SizedBox(height: 12),
-          
-          // 대신 전해주기 버튼 (일기 작성 바로 다음)
-          _buildCoupleMessageButton(),
         ],
       ),
     );
@@ -2033,6 +2041,194 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  // 퀵 액션 카드들 (일기 작성 & 대신 전해주기)
+  Widget _buildQuickActionCards() {
+    return Row(
+      children: [
+        // 일기 작성 카드
+        Expanded(
+          child: _buildDiaryActionCard(),
+        ),
+        const SizedBox(width: 12),
+        // 대신 전해주기 카드
+        Expanded(
+          child: _buildCoupleMessageActionCard(),
+        ),
+      ],
+    );
+  }
+
+  // 일기 작성 액션 카드
+  Widget _buildDiaryActionCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _hasTodayDiary ? Colors.grey[100] : Colors.blue[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _hasTodayDiary ? Colors.grey[300]! : Colors.blue[200]!,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            _hasTodayDiary ? Icons.check_circle : Icons.edit,
+            color: _hasTodayDiary ? Colors.grey[500] : Colors.blue[600],
+            size: 28,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            _hasTodayDiary ? '오늘 일기\n작성 완료' : '오늘 일기\n작성하기',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: _hasTodayDiary ? Colors.grey[600] : Colors.blue[700],
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _hasTodayDiary
+                  ? null
+                  : () async {
+                      final result = await Navigator.pushNamed(context, '/diary-write');
+                      if (result is Map && result['diaryCreated'] == true) {
+                        _checkTodayDiary();
+                        widget.onDiaryStateChanged?.call();
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _hasTodayDiary ? Colors.grey[400] : Colors.blue[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                _hasTodayDiary ? '완료' : '작성',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 대신 전해주기 액션 카드
+  Widget _buildCoupleMessageActionCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.pink[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.pink[200]!,
+          width: 1,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.favorite_border,
+            color: Colors.pink[600],
+            size: 28,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '대신\n전해주기',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.pink[700],
+              height: 1.3,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/couple-message');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink[600],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                '보내기',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 읽지 않은 대신 전해주기 메시지 확인
+  Future<void> _checkForUnreadCoupleMessage() async {
+    try {
+      final message = await CoupleMessageService.getMessageForPopup();
+
+      setState(() {
+        _hasUnreadCoupleMessage = message != null;
+      });
+
+      print('🟡 Unread couple message check: $_hasUnreadCoupleMessage');
+    } catch (e) {
+      print('🔴 Error checking unread couple message: $e');
+      setState(() {
+        _hasUnreadCoupleMessage = false;
+      });
+    }
+  }
+
+  // 대신 전해주기 메시지 팝업 표시
+  void _showCoupleMessagePopup() async {
+    try {
+      final message = await CoupleMessageService.getMessageForPopup();
+
+      if (message != null && mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => CoupleMessagePopup(
+            message: message,
+            onDismiss: () async {
+              // 메시지를 읽음으로 표시
+              await CoupleMessageService.markAsDelivered(message['id']);
+
+              setState(() {
+                _hasUnreadCoupleMessage = false;
+              });
+
+              Navigator.of(context).pop();
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      print('🔴 Error showing couple message popup: $e');
+    }
   }
 }
 
