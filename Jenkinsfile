@@ -47,7 +47,13 @@ pipeline {
                     sh '''
                         echo "Building Spring Boot backend..."
                         chmod +x gradlew
-                        ./gradlew clean build -x test --no-daemon
+
+                        # Force clean all caches and temporary files
+                        rm -rf .gradle build
+                        ./gradlew clean --no-daemon
+
+                        # Build with verbose output for debugging
+                        ./gradlew build -x test --no-daemon --info
                         echo "Backend build completed"
                     '''
                 }
