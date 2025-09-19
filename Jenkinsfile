@@ -1,34 +1,84 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_BUILDKIT = '1'
+        COMPOSE_PROJECT_NAME = 'todayus'
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
+                echo 'Code checked out successfully'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                script {
+                    sh '''
+                        # Install Docker if not present
+                        if ! command -v docker &> /dev/null; then
+                            echo "Installing Docker..."
+                            curl -fsSL https://get.docker.com -o get-docker.sh
+                            sh get-docker.sh
+                            rm get-docker.sh
+                        fi
+
+                        # Install Docker Compose if not present
+                        if ! command -v docker-compose &> /dev/null; then
+                            echo "Installing Docker Compose..."
+                            curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                            chmod +x /usr/local/bin/docker-compose
+                        fi
+
+                        # Verify installations
+                        docker --version
+                        docker-compose --version
+                    '''
+                }
+            }
+        }
+
+        stage('Build Backend') {
+            steps {
+                dir('backend') {
+                    sh '''
+                        echo "Building Spring Boot backend..."
+                        chmod +x gradlew
+                        ./gradlew clean build -x test --no-daemon
+                        echo "Backend build completed"
+                    '''
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh '''
+                    echo "Building backend Docker image..."
+                    docker build -t todayus/backend:latest ./backend
+                    echo "Backend Docker image built successfully"
+                '''
             }
         }
 
         stage('Deploy Backend') {
             steps {
                 sh '''
-                    cd /workspace
-
-                    # Stop existing backend container
+                    echo "Stopping existing backend service..."
                     docker stop todayus-backend || true
                     docker rm todayus-backend || true
 
-                    # Build new backend image
-                    docker build -t todayus-backend ./backend
-
-                    # Run backend container
+                    echo "Starting backend service with RDS connection..."
                     docker run -d \
                         --name todayus-backend \
-                        --network todayus_default \
                         -p 8080:8080 \
-                        -e DB_URL=jdbc:postgresql://todayus-postgres:5432/todayus \
-                        -e DB_USERNAME=todayus \
-                        -e DB_PASSWORD=1234 \
-                        todayus-backend
+                        --restart unless-stopped \
+                        todayus/backend:latest
+
+                    echo "Backend deployed successfully with RDS"
                 '''
             }
         }
@@ -36,20 +86,55 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
+                    echo "Waiting for backend to start..."
                     sleep 30
-                    curl -f http://localhost:8080/actuator/health || exit 1
+
+                    echo "Checking backend health..."
+                    timeout 60 bash -c 'until curl -f http://localhost:8080/actuator/health; do echo "Waiting for backend..."; sleep 5; done'
+
+                    echo "Backend is healthy!"
+                '''
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh '''
+                    echo "Cleaning up unused Docker images..."
+                    docker image prune -f
+                    echo "Cleanup completed"
                 '''
             }
         }
     }
 
     post {
+        always {
+            sh '''
+                echo "=== Deployment Summary ==="
+                docker ps --format "table {{.Names}}\\t{{.Status}}\\t{{.Ports}}"
+                echo "=========================="
+            '''
+        }
         success {
             echo '🎉 Backend deployment successful!'
+            sh '''
+                echo "✅ Backend Status:"
+                docker ps --filter name=todayus-backend
+            '''
         }
         failure {
             echo '❌ Deployment failed!'
-            sh 'docker logs todayus-backend || echo "No backend container logs available"'
+            sh '''
+                echo "📋 Container logs for debugging:"
+                docker logs --tail=50 todayus-backend || echo "No backend logs available"
+            '''
+        }
+        cleanup {
+            sh '''
+                echo "🧹 Cleaning up workspace..."
+                # Keep running containers but clean workspace
+            '''
         }
     }
 }
