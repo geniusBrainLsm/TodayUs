@@ -31,6 +31,15 @@ public class CoupleMessageController {
             @AuthenticationPrincipal CustomOAuth2User user,
             @Valid @RequestBody CoupleMessageDto.CreateRequest request) {
         try {
+            log.info("=== CoupleMessage Create Request ===");
+            log.info("User: {}", user != null ? user.getEmail() : "null");
+            log.info("Request: {}", request != null ? request.getOriginalMessage() : "null");
+
+            if (user == null) {
+                log.error("User is null - authentication failed");
+                return ResponseEntity.status(401).body(Map.of("error", "인증되지 않은 사용자입니다."));
+            }
+
             CoupleMessageDto.Response response = coupleMessageService.createMessage(user.getEmail(), request);
 
             log.info("대신 전달하기 메시지 생성 완료: {}", response.getId());

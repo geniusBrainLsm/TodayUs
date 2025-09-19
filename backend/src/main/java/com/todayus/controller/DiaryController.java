@@ -29,16 +29,22 @@ public class DiaryController {
     public ResponseEntity<DiaryDto.Response> createDiary(
             @AuthenticationPrincipal CustomOAuth2User user,
             @Valid @RequestBody DiaryDto.CreateRequest request) {
-        
+
+        log.info("=== Diary Creation Request ===");
+        log.info("User: {}", user != null ? user.getEmail() : "null");
+        log.info("Request: title={}, date={}, mood={}, hasImage={}",
+                request.getTitle(), request.getDiaryDate(), request.getMoodEmoji(),
+                request.getImageUrl() != null);
+
         // 인증된 사용자 확인
         if (user == null) {
-            log.warn("Unauthenticated request to create diary - user parameter is null");
+            log.error("Unauthenticated request to create diary - user parameter is null");
             return ResponseEntity.status(401).build(); // Unauthorized
         }
-        
+
         log.info("Authenticated user type: {}", user.getClass().getName());
-        log.info("User email: {}", user.getEmail());
-        
+        log.info("User ID: {}, email: {}", user.getUserId(), user.getEmail());
+
         log.info("Creating diary for user: {} with date: {}", user.getEmail(), request.getDiaryDate());
         
         try {
