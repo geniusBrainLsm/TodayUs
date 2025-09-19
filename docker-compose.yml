@@ -1,58 +1,11 @@
+version: "3.8"
+
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:latest
-    environment:
-      POSTGRES_DB: todayus
-      POSTGRES_USER: todayus
-      POSTGRES_PASSWORD: 1234
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
-
-  # Jenkins CI/CD
-  jenkins:
-    image: jenkins/jenkins:lts
-    user: root
-    ports:
-      - "8081:8080"
-      - "50000:50000"
-    volumes:
-      - jenkins_data:/var/jenkins_home
-      - /var/run/docker.sock:/var/run/docker.sock
-      - .:/workspace
-    environment:
-      - DOCKER_HOST=unix:///var/run/docker.sock
-    restart: unless-stopped
-
-  # Backend Application
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    container_name: todayus-backend
     ports:
       - "8080:8080"
-    environment:
-      - DB_URL=jdbc:postgresql://postgres:5432/todayus
-      - DB_USERNAME=todayus
-      - DB_PASSWORD=1234
-    depends_on:
-      - postgres
     restart: unless-stopped
-
-  # Frontend (Flutter Web)
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    restart: unless-stopped
-
-volumes:
-  postgres_data:
-  jenkins_data:

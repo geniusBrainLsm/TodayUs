@@ -13,6 +13,7 @@ pipeline {
                 sh '''
                     git pull origin main
                     docker-compose stop backend || true
+                    docker-compose rm -f backend || true
                     docker-compose build --no-cache backend
                     docker-compose up -d backend
                 '''
@@ -22,7 +23,7 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    sleep 30
+                    sleep 20
                     curl -f http://localhost:8080/actuator/health || exit 1
                 '''
             }
