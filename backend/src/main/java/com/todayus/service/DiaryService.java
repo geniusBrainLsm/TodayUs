@@ -35,6 +35,7 @@ public class DiaryService {
     private final UserRepository userRepository;
     private final CoupleRepository coupleRepository;
     private final AIAnalysisService aiAnalysisService;
+    private final NotificationService notificationService;
     
     public DiaryDto.Response createDiary(String userEmail, DiaryDto.CreateRequest request) {
         User user = findUserByEmail(userEmail);
@@ -59,13 +60,20 @@ public class DiaryService {
                 .build();
         
         diary = diaryRepository.save(diary);
-        
+
         // Trigger AI processing asynchronously
         Long diaryId = diary.getId();
         processAiAnalysisAsync(diaryId);
-        
+
+        // Send notification to partner
+        try {
+            sendDiaryCreatedNotification(user, diary);
+        } catch (Exception e) {
+            log.warn("Failed to send diary creation notification: {}", e.getMessage());
+        }
+
         log.info("Diary created: {} by user: {}", diary.getId(), userEmail);
-        
+
         return DiaryDto.Response.from(diary, user);
     }
     
@@ -384,7 +392,38 @@ public class DiaryService {
             log.error("Error processing AI analysis for diary {}: {}", diaryId, e.getMessage(), e);
         }
     }
-    
+
+    /**
+     * 일기 작성 시 파트너에게 알림 발송
+     */
+    private void sendDiaryCreatedNotification(User author, Diary diary) {
+        try {
+            String title = String.format("💕 %s님이 일기를 작성했어요", author.getNickname());
+            String body = String.format("\"%s\" - 새로운 이야기가 궁금하지 않나요?",
+                    diary.getTitle().length() > 30 ? diary.getTitle().substring(0, 30) + "..." : diary.getTitle());
+
+            Map<String, String> data = new HashMap<>();
+            data.put("type", "diary_created");
+            data.put("action", "navigate_to_diary");
+            data.put("diary_id", diary.getId().toString());
+            data.put("author_name", author.getNickname());
+
+            notificationService.sendNotificationToPartner(
+                author.getId(),
+                title,
+                body,
+                "diary_created",
+                data
+            );
+
+            log.info("Diary creation notification sent for diary {} by user {}", diary.getId(), author.getEmail());
+
+        } catch (Exception e) {
+            log.error("Error sending diary creation notification for diary {} by user {}: {}",
+                    diary.getId(), author.getEmail(), e.getMessage());
+        }
+    }
+
     private User findUserByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> {
