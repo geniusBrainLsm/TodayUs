@@ -312,13 +312,21 @@ public class DiaryService {
     public List<DiaryDto.EmotionStats> getEmotionStats(String userEmail, LocalDate startDate, LocalDate endDate) {
         User user = findUserByEmail(userEmail);
         Couple couple = findCoupleByUser(user);
-        
+
         List<Object[]> stats = diaryRepository.getEmotionStatsByDateRange(couple, startDate, endDate);
         long total = stats.stream().mapToLong(stat -> (Long) stat[1]).sum();
-        
+
         return stats.stream()
                 .map(stat -> DiaryDto.EmotionStats.of((String) stat[0], (Long) stat[1], total))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public boolean hasTodayDiary(String userEmail) {
+        User user = findUserByEmail(userEmail);
+        LocalDate today = LocalDate.now();
+        Optional<Diary> todayDiary = diaryRepository.findByUserAndDiaryDate(user, today);
+        return todayDiary.isPresent();
     }
     
     // AI processing methods
