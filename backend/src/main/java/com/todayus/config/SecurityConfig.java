@@ -34,7 +34,8 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/actuator/**", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate").permitAll()
+                        .requestMatchers("/actuator/**").permitAll() // health, info 포함 전체 actuator 허용
+                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
