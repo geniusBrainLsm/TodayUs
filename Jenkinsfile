@@ -11,7 +11,6 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sh '''
-                    cd /home/ubuntu/TodayUs
                     git pull origin main
                     docker-compose stop backend || true
                     docker-compose build --no-cache backend
