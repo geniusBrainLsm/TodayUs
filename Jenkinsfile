@@ -11,10 +11,11 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sh '''
-                    docker-compose down || true
-                    docker container rm -f todayus-backend || true
+                    cd /home/ubuntu/TodayUs
+                    git pull origin main
+                    docker-compose stop backend || true
                     docker-compose build --no-cache backend
-                    docker-compose up -d backend
+                    docker-compose up -d backend jenkins
                 '''
             }
         }
@@ -22,8 +23,8 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    sleep 20
-                    curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 1
+                    sleep 30
+                    curl -f http://localhost:8080/actuator/health || exit 1
                 '''
             }
         }
