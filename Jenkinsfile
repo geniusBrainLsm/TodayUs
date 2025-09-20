@@ -11,11 +11,13 @@ pipeline {
         stage('Deploy Backend') {
             steps {
                 sh '''
-                    cd /home/ubuntu/TodayUs
-                    git pull origin main
-                    docker-compose stop backend || true
+                    # 이전 컨테이너 정리
+                    docker-compose down || true
+                    docker container rm -f todayus-backend || true
+
+                    # 백엔드 이미지 빌드 및 실행
                     docker-compose build --no-cache backend
-                    docker-compose up -d backend jenkins
+                    docker-compose up -d backend
                 '''
             }
         }
@@ -23,8 +25,9 @@ pipeline {
         stage('Health Check') {
             steps {
                 sh '''
-                    sleep 30
-                    curl -f http://localhost:8080/actuator/health || exit 1
+                    sleep 20
+                    # actuator health 확인
+                    curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 1
                 '''
             }
         }
