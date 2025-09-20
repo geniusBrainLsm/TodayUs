@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        FLUTTER_HOME = '/opt/flutter'
-        PATH = "${FLUTTER_HOME}/bin:${PATH}"
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -13,72 +8,34 @@ pipeline {
             }
         }
 
-        stage('Setup Flutter') {
+        stage('Deploy Backend') {
             steps {
                 sh '''
-                    if [ ! -d "/opt/flutter" ]; then
-                        cd /opt
-                        sudo git clone https://github.com/flutter/flutter.git -b stable
-                        sudo chmod -R 755 /opt/flutter
-                    fi
-                    flutter doctor
+                    docker-compose down || true
+                    docker container rm -f todayus-backend || true
+                    docker-compose build --no-cache backend
+                    docker-compose up -d backend
                 '''
             }
         }
 
-        stage('Flutter Dependencies') {
-            steps {
-                dir('frontend') {
-                    sh 'flutter pub get'
-                }
-            }
-        }
-
-        stage('Flutter Test') {
-            steps {
-                dir('frontend') {
-                    sh 'flutter test'
-                }
-            }
-        }
-
-        stage('Build Web') {
-            steps {
-                dir('frontend') {
-                    sh 'flutter build web --release'
-                }
-            }
-        }
-
-        stage('Build APK') {
-            steps {
-                dir('frontend') {
-                    sh 'flutter build apk --release'
-                }
-            }
-        }
-
-        stage('Deploy Web to Nginx') {
+        stage('Health Check') {
             steps {
                 sh '''
-                    sudo rm -rf /var/www/html/todayus/*
-                    sudo cp -r frontend/build/web/* /var/www/html/todayus/
-                    sudo systemctl reload nginx
+                    sleep 20
+                    curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 1
                 '''
             }
         }
     }
 
     post {
-        always {
-            archiveArtifacts artifacts: 'frontend/build/app/outputs/flutter-apk/*.apk', fingerprint: true
-            cleanWs()
-        }
         success {
-            echo 'Frontend deployment successful!'
+            echo '🎉 Backend deployment successful!'
         }
         failure {
-            echo 'Frontend deployment failed!'
+            echo '❌ Deployment failed!'
+            sh 'docker-compose logs backend'
         }
     }
 }
