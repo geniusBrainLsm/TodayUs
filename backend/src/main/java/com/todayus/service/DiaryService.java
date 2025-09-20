@@ -37,6 +37,7 @@ public class DiaryService {
     private final AIAnalysisService aiAnalysisService;
     private final NotificationService notificationService;
     private final CoupleSummaryService coupleSummaryService;
+    private final DiaryContextService diaryContextService;
     
     public DiaryDto.Response createDiary(String userEmail, DiaryDto.CreateRequest request) {
         User user = findUserByEmail(userEmail);
@@ -371,6 +372,8 @@ public class DiaryService {
             diary.setAiComment(aiComment);
             diary.setAiProcessed(true);
             diaryRepository.save(diary);
+            
+            diaryContextService.upsertDiarySummary(diary);
             
             // 4. Create AI comment
             DiaryComment aiCommentEntity = DiaryComment.builder()

@@ -376,6 +376,95 @@ public class AIAnalysisService {
         }
     }
     
+    public String generateDiarySummary(String title, String content) {
+        try {
+            String prompt = createDiarySummaryPrompt(title, content);
+
+            ChatCompletionRequest chatRequest = ChatCompletionRequest.builder()
+                    .model("gpt-4")
+                    .messages(List.of(
+                            new ChatMessage(ChatMessageRole.SYSTEM.value(), getDiarySummarySystemPrompt()),
+                            new ChatMessage(ChatMessageRole.USER.value(), prompt)
+                    ))
+                    .maxTokens(200)
+                    .temperature(0.5)
+                    .build();
+
+            List<ChatCompletionChoice> choices = openAiService.createChatCompletion(chatRequest).getChoices();
+
+            if (choices.isEmpty()) {
+                log.warn("No response from OpenAI for diary summary");
+                return createFallbackSummary(content);
+            }
+
+            String response = choices.get(0).getMessage().getContent().trim();
+
+            if (response.startsWith("\"") && response.endsWith("\"") {
+                response = response.substring(1, response.length() - 1);
+            }
+
+            return response;
+        } catch (Exception e) {
+            log.error("Error generating diary summary: {}", e.getMessage(), e);
+            return createFallbackSummary(content);
+        }
+    }
+
+    public String generateAiChatReply(String systemPrompt, String userPrompt) {
+        try {
+            ChatCompletionRequest chatRequest = ChatCompletionRequest.builder()
+                    .model("gpt-4")
+                    .messages(List.of(
+                            new ChatMessage(ChatMessageRole.SYSTEM.value(), systemPrompt),
+                            new ChatMessage(ChatMessageRole.USER.value(), userPrompt)
+                    ))
+                    .maxTokens(600)
+                    .temperature(0.6)
+                    .build();
+
+            List<ChatCompletionChoice> choices = openAiService.createChatCompletion(chatRequest).getChoices();
+
+            if (choices.isEmpty()) {
+                log.warn("No response from OpenAI for AI chat");
+                return "기록된 일기에서 관련 내용을 찾지 못했어요. 새로운 추억을 함께 만들어보는 건 어떨까요?";
+            }
+
+            return choices.get(0).getMessage().getContent().trim();
+        } catch (Exception e) {
+            log.error("Error generating AI chat reply: {}", e.getMessage(), e);
+            return "지금은 답변을 만들어낼 수 없었어요. 잠시 후 다시 시도해 주세요.";
+        }
+    }
+
+    private String getDiarySummarySystemPrompt() {
+        return """
+                당신은 연인들의 일기를 간단히 요약하는 AI 보조자입니다.
+                입력으로 주어지는 일기의 제목과 내용을 보고 1-2문장으로 핵심만 부드럽게 정리해 주세요.
+                날짜, 활동, 감정이 드러나면 좋습니다.
+                120자 이내의 자연스러운 한국어 문장으로 답변하고, 추측하거나 꾸며내지 마세요.
+                """;
+    }
+
+    private String createDiarySummaryPrompt(String title, String content) {
+        return String.format("""
+                다음 일기를 1-2문장으로 요약해 주세요.
+
+                제목: %s
+                내용: %s
+                """, title, content);
+    }
+
+    private String createFallbackSummary(String content) {
+        if (content == null || content.isBlank()) {
+            return "기록된 내용이 없어 요약할 수 없었어요.";
+        }
+        String trimmed = content.trim();
+        if (trimmed.length() <= 120) {
+            return trimmed;
+        }
+        return trimmed.substring(0, 120) + "...";
+    }
+
     private String createMessageProcessingPrompt(String originalMessage, String senderNickname, String receiverNickname) {
         return String.format("""
                 다음은 %s님이 %s님에게 전하고 싶어하는 서운하거나 속상했던 마음입니다:

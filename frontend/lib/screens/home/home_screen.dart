@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen>
   DateTime? _anniversaryDate;
   int? _daysSince;
   bool _isLoading = true;
-  
+
   List<Map<String, dynamic>> _recentDiaries = [];
   List<Map<String, dynamic>> _emotionStats = [];
   final DiaryService _diaryService = DiaryService();
@@ -52,9 +52,9 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void initState() {
     super.initState();
-    
+
     WidgetsBinding.instance.addObserver(this);
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -88,7 +88,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     // 앱이 포그라운드로 돌아올 때 일기 상태 업데이트
     if (state == AppLifecycleState.resumed) {
       print('🟡 앱이 포그라운드로 복귀 - 일기 상태 업데이트');
@@ -102,7 +102,7 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       print('🟡 커플 요약 새로고침 시작');
       final newSummary = await _diaryService.getCoupleSummary();
-      
+
       if (mounted) {
         setState(() {
           _coupleSummary = newSummary;
@@ -196,12 +196,12 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       final prefs = await SharedPreferences.getInstance();
       final lastWriteTimeStr = prefs.getString('last_diary_write_time');
-      
+
       if (lastWriteTimeStr != null) {
         final lastWriteTime = DateTime.parse(lastWriteTimeStr);
         final now = DateTime.now();
         final timeDifference = now.difference(lastWriteTime);
-        
+
         // 6시간(21600초) 이후에만 작성 가능
         if (mounted) {
           setState(() {
@@ -224,15 +224,15 @@ class _HomeScreenState extends State<HomeScreen>
     try {
       // 잠시 대기 후 체크 (UI 로딩 완료 후)
       await Future.delayed(const Duration(milliseconds: 500));
-      
+
       if (!mounted) return;
-      
+
       final messageData = await CoupleMessageService.getMessageForPopup();
-      
+
       if (messageData != null && mounted) {
         // 팝업 표시
         await showCoupleMessagePopup(
-          context, 
+          context,
           messageData,
           onClosed: () {
             print('Couple message popup closed');
@@ -247,13 +247,15 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _loadData() async {
     try {
       final anniversary = await AnniversaryService.getAnniversary();
-      
+
       print('🔵 Home screen loading anniversary data: $anniversary');
-      
+
       int? daysSince;
       if (anniversary != null && anniversary['anniversaryDate'] != null) {
-        daysSince = AnniversaryService.calculateDaysSince(anniversary['anniversaryDate'] as DateTime);
-        print('🟢 Anniversary found: ${anniversary['anniversaryDate']}, Days since: $daysSince');
+        daysSince = AnniversaryService.calculateDaysSince(
+            anniversary['anniversaryDate'] as DateTime);
+        print(
+            '🟢 Anniversary found: ${anniversary['anniversaryDate']}, Days since: $daysSince');
       } else {
         print('🟡 No anniversary found');
       }
@@ -263,14 +265,14 @@ class _HomeScreenState extends State<HomeScreen>
       List<Map<String, dynamic>> emotionStats = [];
       int totalDiaries = 0;
       String coupleSummary = '서로를 향한 마음이\n일기 속에 따뜻하게\n담겨있는 소중한 시간 💕';
-      
+
       try {
         recentDiaries = await _diaryService.getRecentDiaries(limit: 3);
-        
+
         // Get total diaries count
         final allDiaries = await _diaryService.getRecentDiaries(limit: 100);
         totalDiaries = allDiaries.length;
-        
+
         // Get emotion stats for the last 30 days
         final endDate = DateTime.now();
         final startDate = endDate.subtract(const Duration(days: 30));
@@ -309,16 +311,19 @@ class _HomeScreenState extends State<HomeScreen>
       // Check for today's custom anniversaries
       List<Map<String, dynamic>> todaysCustomAnniversaries = [];
       try {
-        todaysCustomAnniversaries = await CustomAnniversaryService.getTodaysCustomAnniversaries();
+        todaysCustomAnniversaries =
+            await CustomAnniversaryService.getTodaysCustomAnniversaries();
         if (todaysCustomAnniversaries.isNotEmpty) {
-          print('🎉 Today\'s custom anniversaries found: ${todaysCustomAnniversaries.length}');
+          print(
+              '🎉 Today\'s custom anniversaries found: ${todaysCustomAnniversaries.length}');
         }
       } catch (customAnniversaryError) {
         print('Error loading custom anniversaries: $customAnniversaryError');
       }
 
       // Check if there's any anniversary today (milestone or custom)
-      bool hasAnyTodaysAnniversary = todaysMilestone != null || todaysCustomAnniversaries.isNotEmpty;
+      bool hasAnyTodaysAnniversary =
+          todaysMilestone != null || todaysCustomAnniversaries.isNotEmpty;
 
       if (mounted) {
         setState(() {
@@ -334,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen>
           _hasAnyTodaysAnniversary = hasAnyTodaysAnniversary;
           _isLoading = false;
         });
-        
+
         _fadeController.forward();
       }
     } catch (e) {
@@ -350,7 +355,8 @@ class _HomeScreenState extends State<HomeScreen>
   Future<void> _updateLastWriteTime() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('last_diary_write_time', DateTime.now().toIso8601String());
+      await prefs.setString(
+          'last_diary_write_time', DateTime.now().toIso8601String());
     } catch (e) {
       print('Error updating last write time: $e');
     }
@@ -358,15 +364,24 @@ class _HomeScreenState extends State<HomeScreen>
 
   String _getFormattedAnniversary() {
     if (_anniversaryDate == null) return '설정되지 않음';
-    
+
     final monthNames = [
-      '1월', '2월', '3월', '4월', '5월', '6월',
-      '7월', '8월', '9월', '10월', '11월', '12월'
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월'
     ];
-    
+
     return '${_anniversaryDate!.year}년 ${monthNames[_anniversaryDate!.month - 1]} ${_anniversaryDate!.day}일';
   }
-
 
   Widget _buildMainRobotSection() {
     return Container(
@@ -408,14 +423,14 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // 액션 버튼들 (관계분석, 일기작성, 대신 전해주기)
           _buildActionButtons(),
-          
+
           const SizedBox(height: 24),
-          
+
           // AI 요약 (간단하게)
           if (_coupleSummary.isNotEmpty)
             Container(
@@ -669,7 +684,8 @@ class _HomeScreenState extends State<HomeScreen>
                   );
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
@@ -709,17 +725,17 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Emotion Stats
           Column(
             children: _emotionStats.take(3).map((stat) {
               final emotion = stat['emotion'] as String;
               final percentage = stat['percentage'] as double;
-              
+
               final emotionEmoji = _getEmotionEmoji(emotion);
-              
+
               return Container(
                 margin: const EdgeInsets.only(bottom: 14),
                 padding: const EdgeInsets.all(20),
@@ -767,7 +783,8 @@ class _HomeScreenState extends State<HomeScreen>
                           const SizedBox(height: 10),
                           LinearProgressIndicator(
                             value: percentage / 100,
-                            backgroundColor: const Color(0xFFE91E63).withValues(alpha: 0.2),
+                            backgroundColor:
+                                const Color(0xFFE91E63).withValues(alpha: 0.2),
                             valueColor: AlwaysStoppedAnimation<Color>(
                               const Color(0xFFE91E63),
                             ),
@@ -779,7 +796,8 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     const SizedBox(width: 16),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
@@ -855,9 +873,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
             ],
           ),
-          
           const SizedBox(height: 16),
-          
           if (_recentDiaries.isEmpty)
             // Empty state
             Container(
@@ -910,97 +926,101 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                     child: Row(
                       children: [
-                      // Thumbnail Image (if exists)
-                      if (diary['imageUrl'] != null && diary['imageUrl'].toString().isNotEmpty)
-                        Container(
-                          width: 50,
-                          height: 50,
-                          margin: const EdgeInsets.only(right: 12),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3),
-                              width: 1,
+                        // Thumbnail Image (if exists)
+                        if (diary['imageUrl'] != null &&
+                            diary['imageUrl'].toString().isNotEmpty)
+                          Container(
+                            width: 50,
+                            height: 50,
+                            margin: const EdgeInsets.only(right: 12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(7),
+                              child: Image.network(
+                                '${EnvironmentConfig.baseUrl}${diary['imageUrl']}',
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    child: Icon(
+                                      Icons.image_not_supported,
+                                      color:
+                                          Colors.white.withValues(alpha: 0.5),
+                                      size: 20,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          )
+                        // Mood emoji
+                        else if (diary['moodEmoji'] != null &&
+                            diary['moodEmoji'].toString().isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              diary['moodEmoji'],
+                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(7),
-                            child: Image.network(
-                              '${EnvironmentConfig.baseUrl}${diary['imageUrl']}',
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  child: Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.white.withValues(alpha: 0.5),
-                                    size: 20,
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        )
-                      // Mood emoji
-                      else if (diary['moodEmoji'] != null && diary['moodEmoji'].toString().isNotEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            diary['moodEmoji'],
-                            style: const TextStyle(fontSize: 16),
+                        const SizedBox(width: 12),
+
+                        // Diary info
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                diary['title'],
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${author['nickname']} • ${_formatDiaryDate(diary['diaryDate'])}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      const SizedBox(width: 12),
-                      
-                      // Diary info
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              diary['title'],
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+
+                        // AI processed indicator
+                        if (diary['aiProcessed'] == true)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.3),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '${author['nickname']} • ${_formatDiaryDate(diary['diaryDate'])}',
+                            child: const Text(
+                              'AI',
                               style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 10,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      
-                      // AI processed indicator
-                      if (diary['aiProcessed'] == true)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(8),
                           ),
-                          child: const Text(
-                            'AI',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
+                      ],
                     ),
                   ),
                 );
@@ -1036,61 +1056,60 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: SafeArea(
               child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : RefreshIndicator(
-                  onRefresh: _refreshCoupleSummary,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        // 메인 콘텐츠 영역 (헤더 포함)
-                        _buildMainContent(),
-                        
-                        const SizedBox(height: 20),
-                        
-                        // 하단 통계 영역
-                        if (_emotionStats.isNotEmpty) 
-                          _buildBottomStats(),
-                        
-                        const SizedBox(height: 80),
-                      ],
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      onRefresh: _refreshCoupleSummary,
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            // 메인 콘텐츠 영역 (헤더 포함)
+                            _buildMainContent(),
+
+                            const SizedBox(height: 20),
+
+                            // 하단 통계 영역
+                            if (_emotionStats.isNotEmpty) _buildBottomStats(),
+
+                            const SizedBox(height: 80),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-              ),
             ),
           ),
         ],
       ),
       floatingActionButton: _hasUnreadCoupleMessage
-        ? FloatingActionButton(
-            onPressed: _showCoupleMessagePopup,
-            backgroundColor: Colors.pink[400],
-            child: Stack(
-              children: [
-                const Icon(
-                  Icons.favorite,
-                  color: Colors.white,
-                  size: 28,
-                ),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 12,
-                      minHeight: 12,
+          ? FloatingActionButton(
+              onPressed: _showCoupleMessagePopup,
+              backgroundColor: Colors.pink[400],
+              child: Stack(
+                children: [
+                  const Icon(
+                    Icons.favorite,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 12,
+                        minHeight: 12,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          )
-        : null,
+                ],
+              ),
+            )
+          : null,
     );
   }
 
@@ -1098,6 +1117,7 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // OO봇의 오늘의 한마디 (간단한 텍스트로만)
         Expanded(
@@ -1127,12 +1147,19 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         // D-day (단순 텍스트)
         if (_daysSince != null)
-          Text(
-            'D+$_daysSince',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(
+              'D+$_daysSince',
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF2563EB),
+              ),
             ),
           ),
       ],
@@ -1145,14 +1172,13 @@ class _HomeScreenState extends State<HomeScreen>
       children: [
         // 마스코트 로봇 + OO봇 메시지 합친 카드
         _buildRobotWithMessageCard(),
-        
+
         const SizedBox(height: 16),
-        
+
         // 액션 카드들
         _buildActionCards(),
 
         const SizedBox(height: 16),
-        
       ],
     );
   }
@@ -1178,6 +1204,7 @@ class _HomeScreenState extends State<HomeScreen>
           // 헤더 부분 (안녕하세요 + D-day)
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1199,111 +1226,115 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue[100]!, width: 1),
-                    ),
-                    child: Text(
-                      _getDailyMessage(),
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.blue[700],
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Text(
+                    _getDailyMessage(),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.blue[700],
+                      fontWeight: FontWeight.w500,
+                      height: 1.4,
                     ),
                   ),
                 ],
               ),
               // D-day (단순 텍스트)
               if (_daysSince != null)
-                Text(
-                  'D+$_daysSince',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    'D+$_daysSince',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF2563EB),
+                    ),
                   ),
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // 로봇 이미지 (기념일이면 특별한 로봇)
           Container(
             width: 120,
             height: 120,
             decoration: BoxDecoration(
-              color: _hasAnyTodaysAnniversary ? Colors.amber[50] : Colors.blue[50],
+              color:
+                  _hasAnyTodaysAnniversary ? Colors.amber[50] : Colors.blue[50],
               borderRadius: BorderRadius.circular(60),
-              border: _hasAnyTodaysAnniversary ? Border.all(
-                color: Colors.amber.shade200,
-                width: 3,
-              ) : null,
+              border: _hasAnyTodaysAnniversary
+                  ? Border.all(
+                      color: Colors.amber.shade200,
+                      width: 3,
+                    )
+                  : null,
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(60),
-              child: _hasAnyTodaysAnniversary 
-                ? Stack(
-                    children: [
-                      Image.asset(
-                        'assets/images/question_robot.png',
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.celebration,
-                            size: 60,
-                            color: Colors.amber[600],
-                          );
-                        },
-                      ),
-                      // 기념일 효과
-                      Positioned.fill(
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(60),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.amber.withValues(alpha: 0.3),
-                                blurRadius: 15,
-                                spreadRadius: 2,
-                              ),
-                            ],
+              child: _hasAnyTodaysAnniversary
+                  ? Stack(
+                      children: [
+                        Image.asset(
+                          'assets/images/question_robot.png',
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.celebration,
+                              size: 60,
+                              color: Colors.amber[600],
+                            );
+                          },
+                        ),
+                        // 기념일 효과
+                        Positioned.fill(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(60),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.amber.withValues(alpha: 0.3),
+                                  blurRadius: 15,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      // 기념일 아이콘
-                      Positioned(
-                        top: 8,
-                        right: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.shade600,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            '🎉',
-                            style: TextStyle(fontSize: 16),
+                        // 기념일 아이콘
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.shade600,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Text(
+                              '🎉',
+                              style: TextStyle(fontSize: 16),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  )
-                : Image.asset(
-                    'assets/images/done_robot.png',
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Icon(
-                        Icons.smart_toy,
-                        size: 60,
-                        color: Colors.blue[400],
-                      );
-                    },
-                  ),
+                      ],
+                    )
+                  : Image.asset(
+                      'assets/images/done_robot.png',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Icon(
+                          Icons.smart_toy,
+                          size: 60,
+                          color: Colors.blue[400],
+                        );
+                      },
+                    ),
             ),
           ),
         ],
@@ -1359,15 +1390,53 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       children: [
         // OO봇 관계 분석 카드
-        if (_coupleSummary.isNotEmpty)
-          _buildRelationshipAnalysisCard(),
+        if (_coupleSummary.isNotEmpty) _buildRelationshipAnalysisCard(),
 
         const SizedBox(height: 16),
 
         // 일기 작성 & 대신 전해주기 카드들
-        _buildQuickActionCards(),
+        _buildQuickActionButtons(),
       ],
     );
+  }
+
+  Widget _buildQuickActionButtons() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _QuickActionButton(
+          title: _hasTodayDiary ? '오늘 일기 완료' : '오늘 일기 쓰기',
+          subtitle: _hasTodayDiary ? '오늘의 기록을 모두 남겼어요' : '사소한 순간도 기록해보세요',
+          icon: _hasTodayDiary ? Icons.check_circle : Icons.edit_note_rounded,
+          backgroundColor:
+              _hasTodayDiary ? Colors.grey.shade300 : const Color(0xFF2563EB),
+          foregroundColor: _hasTodayDiary ? Colors.grey.shade600 : Colors.white,
+          onPressed:
+              _hasTodayDiary ? null : () => _navigateToDiaryWriteScreen(),
+          trailingIcon: _hasTodayDiary ? Icons.check_circle_rounded : null,
+        ),
+        const SizedBox(height: 12),
+        _QuickActionButton(
+          title: '마음 전하기',
+          subtitle: '말하기 어려운 마음을 부드럽게 전달해요',
+          icon: Icons.favorite_rounded,
+          backgroundColor: const Color(0xFFF472B6),
+          foregroundColor: Colors.white,
+          onPressed: () async {
+            await Navigator.pushNamed(context, '/couple-message-create');
+          },
+        ),
+      ],
+    );
+  }
+
+  Future<void> _navigateToDiaryWriteScreen() async {
+    final result = await Navigator.pushNamed(context, '/diary-write');
+    if (result is Map && result['diaryCreated'] == true && mounted) {
+      _checkTodayDiary();
+      widget.onDiaryStateChanged?.call();
+      _refreshCoupleSummary();
+    }
   }
 
   // OO봇 관계 분석 카드 (기존 _buildSummaryCard를 수정)
@@ -1571,7 +1640,7 @@ class _HomeScreenState extends State<HomeScreen>
     final feedback = _unreadFeedbacks.first;
     final partnerName = feedback['partnerName'] as String? ?? '파트너';
     final weekLabel = feedback['weekLabel'] as String? ?? '이번 주';
-    
+
     return GestureDetector(
       onTap: () {
         // 피드백 상세 화면으로 이동
@@ -1642,7 +1711,8 @@ class _HomeScreenState extends State<HomeScreen>
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.red.shade400,
                     borderRadius: BorderRadius.circular(12),
@@ -1688,12 +1758,13 @@ class _HomeScreenState extends State<HomeScreen>
 
     try {
       // 피드백 상세 정보 가져오기 (읽음 처리도 함께 됨)
-      final detailFeedback = await _weeklyFeedbackService.getFeedback(feedbackId);
-      
+      final detailFeedback =
+          await _weeklyFeedbackService.getFeedback(feedbackId);
+
       if (detailFeedback != null && mounted) {
         // 피드백 상세 다이얼로그 표시
         _showFeedbackDialog(detailFeedback);
-        
+
         // 읽음 처리 후 목록 새로고침
         _loadData();
       }
@@ -1707,7 +1778,7 @@ class _HomeScreenState extends State<HomeScreen>
     final senderName = feedback['senderName'] as String? ?? '파트너';
     final refinedMessage = feedback['refinedMessage'] as String? ?? '';
     final weekLabel = _generateWeekLabel(feedback['weekOf'] as String?);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1818,7 +1889,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   String _generateWeekLabel(String? weekOfStr) {
     if (weekOfStr == null) return '이번 주';
-    
+
     try {
       final weekOf = DateTime.parse(weekOfStr);
       final month = weekOf.month;
@@ -1847,7 +1918,7 @@ class _HomeScreenState extends State<HomeScreen>
       final today = DateTime(now.year, now.month, now.day);
       final yesterday = today.subtract(const Duration(days: 1));
       final diaryDate = DateTime(date.year, date.month, date.day);
-      
+
       if (diaryDate == today) {
         return '오늘';
       } else if (diaryDate == yesterday) {
@@ -2049,147 +2120,6 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   // 퀵 액션 카드들 (일기 작성 & 대신 전해주기)
-  Widget _buildQuickActionCards() {
-    return Row(
-      children: [
-        // 일기 작성 카드
-        Expanded(
-          child: _buildDiaryActionCard(),
-        ),
-        const SizedBox(width: 12),
-        // 대신 전해주기 카드
-        Expanded(
-          child: _buildCoupleMessageActionCard(),
-        ),
-      ],
-    );
-  }
-
-  // 일기 작성 액션 카드
-  Widget _buildDiaryActionCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: _hasTodayDiary ? Colors.grey[100] : Colors.blue[50],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: _hasTodayDiary ? Colors.grey[300]! : Colors.blue[200]!,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            _hasTodayDiary ? Icons.check_circle : Icons.edit,
-            color: _hasTodayDiary ? Colors.grey[500] : Colors.blue[600],
-            size: 28,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _hasTodayDiary ? '오늘 일기\n작성 완료' : '오늘 일기\n작성하기',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: _hasTodayDiary ? Colors.grey[600] : Colors.blue[700],
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _hasTodayDiary
-                  ? null
-                  : () async {
-                      final result = await Navigator.pushNamed(context, '/diary-write');
-                      if (result is Map && result['diaryCreated'] == true) {
-                        _checkTodayDiary();
-                        widget.onDiaryStateChanged?.call();
-                      }
-                    },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _hasTodayDiary ? Colors.grey[400] : Colors.blue[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                _hasTodayDiary ? '완료' : '작성',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 대신 전해주기 액션 카드
-  Widget _buildCoupleMessageActionCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.pink[50],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.pink[200]!,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.favorite_border,
-            color: Colors.pink[600],
-            size: 28,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '대신\n전해주기',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.pink[700],
-              height: 1.3,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/couple-message');
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pink[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                '보내기',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // 읽지 않은 대신 전해주기 메시지 확인
   Future<void> _checkForUnreadCoupleMessage() async {
     try {
       final message = await CoupleMessageService.getMessageForPopup();
@@ -2371,6 +2301,89 @@ class _HomeScreenState extends State<HomeScreen>
 }
 
 // 점 패턴 페인터
+class _QuickActionButton extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color foregroundColor;
+  final Future<void> Function()? onPressed;
+  final IconData? trailingIcon;
+
+  const _QuickActionButton({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.backgroundColor,
+    required this.foregroundColor,
+    this.onPressed,
+    this.trailingIcon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bool isDisabled = onPressed == null;
+    final Color effectiveBg =
+        isDisabled ? Colors.grey.shade300 : backgroundColor;
+    final Color effectiveFg =
+        isDisabled ? Colors.grey.shade600 : foregroundColor;
+    final Color subtitleColor = isDisabled
+        ? Colors.grey.shade500
+        : (foregroundColor == Colors.white
+            ? Colors.white.withOpacity(0.85)
+            : foregroundColor.withOpacity(0.9));
+
+    return ElevatedButton(
+      onPressed: onPressed == null ? null : () async => await onPressed!(),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: effectiveBg,
+        foregroundColor: effectiveFg,
+        disabledBackgroundColor: Colors.grey.shade300,
+        disabledForegroundColor: Colors.grey.shade600,
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: isDisabled ? 0 : 2,
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 24, color: effectiveFg),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: effectiveFg,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: subtitleColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (trailingIcon != null) ...[
+            const SizedBox(width: 12),
+            Icon(trailingIcon, size: 20, color: effectiveFg),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class DotPatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

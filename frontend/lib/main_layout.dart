@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/diary/diary_list_screen.dart';
 import 'screens/diary/diary_write_screen.dart';
+import 'screens/ai/ai_chat_screen.dart';
 import 'screens/timeline/timeline_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'services/diary_service.dart';
@@ -29,6 +30,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
     _screens = [
       HomeScreen(onDiaryStateChanged: _checkTodayDiary),
       const DiaryListScreen(),
+      const AiChatScreen(),
       const TimelineScreen(),
       const ProfileScreen(),
     ];
@@ -119,6 +121,11 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                 label: '일기',
               ),
               BottomNavigationBarItem(
+                icon: Icon(Icons.smart_toy_outlined),
+                activeIcon: Icon(Icons.smart_toy),
+                label: 'AI',
+              ),
+              BottomNavigationBarItem(
                 icon: Icon(Icons.timeline_outlined),
                 activeIcon: Icon(Icons.timeline),
                 label: '타임라인',
@@ -132,26 +139,29 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
           ),
         ),
       ),
-      floatingActionButton: _currentIndex == 1 && !_hasTodayDiary // 일기 탭에서만 & 오늘 일기가 없을 때만 보이도록
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (context) => const DiaryWriteScreen(),
-                  ),
-                ).then((result) {
-                  // 일기 작성 화면에서 돌아왔을 때 상태 업데이트
-                  if (result is Map && result['diaryCreated'] == true) {
-                    print('🟢 MainLayout: 일기 작성 완료 - 상태 업데이트');
-                  }
-                  _checkTodayDiary();
-                });
-              },
-              backgroundColor: Colors.black87,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.edit),
-            )
-          : null,
+      floatingActionButton:
+          _currentIndex == 1 && !_hasTodayDiary // 일기 탭에서만 & 오늘 일기가 없을 때만 보이도록
+              ? FloatingActionButton(
+                  onPressed: () {
+                    Navigator.of(context)
+                        .push(
+                      MaterialPageRoute(
+                        builder: (context) => const DiaryWriteScreen(),
+                      ),
+                    )
+                        .then((result) {
+                      // 일기 작성 화면에서 돌아왔을 때 상태 업데이트
+                      if (result is Map && result['diaryCreated'] == true) {
+                        print('🟢 MainLayout: 일기 작성 완료 - 상태 업데이트');
+                      }
+                      _checkTodayDiary();
+                    });
+                  },
+                  backgroundColor: Colors.black87,
+                  foregroundColor: Colors.white,
+                  child: const Icon(Icons.edit),
+                )
+              : null,
     );
   }
 }

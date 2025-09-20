@@ -31,7 +31,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -59,13 +59,19 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
 
   /// 이미지 URL 처리 (완전한 URL인지 확인)
   String _getImageUrl(String imageUrl) {
-    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    final sanitizedUrl = imageUrl.trim();
+
+    if (sanitizedUrl.startsWith('http://') ||
+        sanitizedUrl.startsWith('https://')) {
       // 이미 완전한 URL인 경우 (S3 URL)
-      return imageUrl;
-    } else {
-      // 상대 경로인 경우 baseUrl 추가
-      return '${EnvironmentConfig.baseUrl}$imageUrl';
+      return sanitizedUrl;
     }
+
+    final baseUrl = EnvironmentConfig.baseUrl;
+    final normalizedPath =
+        sanitizedUrl.startsWith('/') ? sanitizedUrl.substring(1) : sanitizedUrl;
+    final separator = baseUrl.endsWith('/') ? '' : '/';
+    return '$baseUrl$separator$normalizedPath';
   }
 
   Future<void> _loadDiary() async {
@@ -75,13 +81,13 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
 
     try {
       final diary = await _diaryService.getDiary(widget.diaryId);
-      
+
       if (mounted) {
         setState(() {
           _diary = diary;
           _isLoading = false;
         });
-        
+
         _fadeController.forward();
       }
     } catch (error) {
@@ -90,7 +96,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
         setState(() {
           _isLoading = false;
         });
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error.toString().contains('권한이 없습니다')
@@ -126,10 +132,10 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
 
       _commentController.clear();
       _commentFocusNode.unfocus();
-      
+
       // Reload diary to get updated comments
       await _loadDiary();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -166,14 +172,26 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
       final today = DateTime(now.year, now.month, now.day);
       final yesterday = today.subtract(const Duration(days: 1));
       final diaryDate = DateTime(date.year, date.month, date.day);
-      
+
       if (diaryDate == today) {
         return '오늘';
       } else if (diaryDate == yesterday) {
         return '어제';
       } else {
-        final monthNames = ['1월', '2월', '3월', '4월', '5월', '6월',
-                           '7월', '8월', '9월', '10월', '11월', '12월'];
+        final monthNames = [
+          '1월',
+          '2월',
+          '3월',
+          '4월',
+          '5월',
+          '6월',
+          '7월',
+          '8월',
+          '9월',
+          '10월',
+          '11월',
+          '12월'
+        ];
         return '${date.year}년 ${monthNames[date.month - 1]} ${date.day}일';
       }
     } catch (e) {
@@ -186,7 +204,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
       final dateTime = DateTime.parse(dateTimeStr);
       final now = DateTime.now();
       final diff = now.difference(dateTime);
-      
+
       if (diff.inMinutes < 1) {
         return '방금 전';
       } else if (diff.inHours < 1) {
@@ -257,7 +275,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                   ],
                 ),
               ),
-              
+
               // Content
               Expanded(
                 child: _isLoading
@@ -269,7 +287,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                     : _diary == null
                         ? Center(
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 20),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 20),
                               padding: const EdgeInsets.all(40),
                               decoration: BoxDecoration(
                                 color: Colors.white,
@@ -312,13 +331,16 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                                     // Diary Content
                                     Expanded(
                                       child: Container(
-                                        margin: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+                                        margin: const EdgeInsets.fromLTRB(
+                                            20, 0, 20, 0),
                                         decoration: BoxDecoration(
                                           color: Colors.white,
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: Colors.black.withValues(alpha: 0.05),
+                                              color: Colors.black
+                                                  .withValues(alpha: 0.05),
                                               blurRadius: 10,
                                               offset: const Offset(0, 2),
                                             ),
@@ -331,23 +353,23 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                                             SliverToBoxAdapter(
                                               child: _buildDiaryHeader(),
                                             ),
-                                            
+
                                             // Diary Content
                                             SliverToBoxAdapter(
                                               child: _buildDiaryContent(),
                                             ),
-                                            
+
                                             // AI Analysis
                                             if (_diary!['aiProcessed'] == true)
                                               SliverToBoxAdapter(
                                                 child: _buildAiAnalysis(),
                                               ),
-                                            
+
                                             // Comments Section
                                             SliverToBoxAdapter(
                                               child: _buildCommentsSection(),
                                             ),
-                                            
+
                                             // Bottom padding
                                             const SliverToBoxAdapter(
                                               child: SizedBox(height: 100),
@@ -356,7 +378,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                                         ),
                                       ),
                                     ),
-                                    
+
                                     // Comment Input
                                     _buildCommentInput(),
                                   ],
@@ -374,7 +396,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
 
   Widget _buildDiaryHeader() {
     final author = _diary!['author'] as Map<String, dynamic>;
-    
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -425,9 +447,10 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                   ],
                 ),
               ),
-              
+
               // Mood Emoji
-              if (_diary!['moodEmoji'] != null && _diary!['moodEmoji'].toString().isNotEmpty)
+              if (_diary!['moodEmoji'] != null &&
+                  _diary!['moodEmoji'].toString().isNotEmpty)
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -448,9 +471,9 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                 ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Title
           Text(
             _diary!['title'],
@@ -473,7 +496,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image (if exists)
-          if (_diary!['imageUrl'] != null && _diary!['imageUrl'].toString().isNotEmpty) ...[
+          if (_diary!['imageUrl'] != null &&
+              _diary!['imageUrl'].toString().isNotEmpty) ...[
             Container(
               width: double.infinity,
               constraints: const BoxConstraints(maxHeight: 300),
@@ -525,7 +549,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                       child: Center(
                         child: CircularProgressIndicator(
                           value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
                               : null,
                         ),
                       ),
@@ -535,7 +560,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
               ),
             ),
           ],
-          
+
           // Content text
           Text(
             _diary!['content'],
@@ -583,10 +608,9 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
               ),
             ],
           ),
-          
           const SizedBox(height: 12),
-          
-          if (_diary!['aiEmotion'] != null && _diary!['aiEmotion'].toString().isNotEmpty)
+          if (_diary!['aiEmotion'] != null &&
+              _diary!['aiEmotion'].toString().isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -602,8 +626,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                 ),
               ),
             ),
-          
-          if (_diary!['aiComment'] != null && _diary!['aiComment'].toString().isNotEmpty) ...[
+          if (_diary!['aiComment'] != null &&
+              _diary!['aiComment'].toString().isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
               _diary!['aiComment'],
@@ -621,7 +645,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
 
   Widget _buildCommentsSection() {
     final comments = _diary!['comments'] as List<dynamic>? ?? [];
-    
+
     return Container(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -645,9 +669,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
               ),
             ],
           ),
-          
           const SizedBox(height: 16),
-          
           if (comments.isEmpty)
             Container(
               width: double.infinity,
@@ -681,15 +703,19 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                 final commentMap = comment as Map<String, dynamic>;
                 final isAiComment = commentMap['type'] == 'AI';
                 final author = commentMap['author'] as Map<String, dynamic>?;
-                
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: isAiComment ? const Color(0xFF4A90E2).withValues(alpha: 0.05) : Colors.grey.shade50,
+                    color: isAiComment
+                        ? const Color(0xFF4A90E2).withValues(alpha: 0.05)
+                        : Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: isAiComment ? const Color(0xFF4A90E2).withValues(alpha: 0.2) : Colors.grey.shade200,
+                      color: isAiComment
+                          ? const Color(0xFF4A90E2).withValues(alpha: 0.2)
+                          : Colors.grey.shade200,
                       width: 1,
                     ),
                   ),
@@ -708,7 +734,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                           else
                             CircleAvatar(
                               radius: 12,
-                              backgroundColor: const Color(0xFF4A90E2).withValues(alpha: 0.1),
+                              backgroundColor: const Color(0xFF4A90E2)
+                                  .withValues(alpha: 0.1),
                               child: Text(
                                 author?['nickname']?.substring(0, 1) ?? '?',
                                 style: const TextStyle(
@@ -724,7 +751,9 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isAiComment ? const Color(0xFF4A90E2) : Colors.black87,
+                              color: isAiComment
+                                  ? const Color(0xFF4A90E2)
+                                  : Colors.black87,
                             ),
                           ),
                           const Spacer(),
@@ -737,15 +766,17 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 8),
-                      
+
                       // Comment Content
                       Text(
                         commentMap['content'],
                         style: TextStyle(
                           fontSize: 14,
-                          color: isAiComment ? const Color(0xFF4A90E2) : Colors.black87,
+                          color: isAiComment
+                              ? const Color(0xFF4A90E2)
+                              : Colors.black87,
                           height: 1.4,
                         ),
                       ),
@@ -792,7 +823,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                   borderRadius: BorderRadius.circular(25),
                   borderSide: const BorderSide(color: Color(0xFF4A90E2)),
                 ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 filled: true,
                 fillColor: Colors.grey.shade50,
               ),
