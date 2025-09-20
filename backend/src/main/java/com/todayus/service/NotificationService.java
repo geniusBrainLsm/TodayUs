@@ -155,6 +155,56 @@ public class NotificationService {
     }
     
     /**
+     * 일기 댓글 알림 발송
+     */
+    public void sendDiaryCommentNotification(
+            Long commenterUserId,
+            String commenterNickname,
+            Long diaryId,
+            String diaryTitle,
+            Long commentId,
+            String commentContent
+    ) {
+        try {
+            String safeNickname = (commenterNickname != null && !commenterNickname.isBlank())
+                    ? commenterNickname
+                    : "파트너";
+
+            Map<String, String> data = new HashMap<>();
+            data.put("type", "diary_comment");
+            data.put("action", "navigate_to_diary_comment");
+            data.put("diary_id", diaryId.toString());
+            data.put("author_name", safeNickname);
+            if (diaryTitle != null && !diaryTitle.isBlank()) {
+                data.put("diary_title", diaryTitle);
+            }
+            if (commentId != null) {
+                data.put("comment_id", commentId.toString());
+            }
+
+            String preview = commentContent != null ? commentContent.trim() : "";
+            if (preview.length() > 50) {
+                preview = preview.substring(0, 50) + "...";
+            }
+            if (preview.isEmpty()) {
+                preview = "새로운 댓글을 확인해보세요!";
+            }
+
+            sendNotificationToPartner(
+                commenterUserId,
+                String.format("\uD83D\uDCAC %s님이 댓글을 남겼어요", safeNickname),
+                preview,
+                "diary_comment",
+                data
+            );
+
+            log.info("Diary comment notification sent request for diary {} by user {}", diaryId, commenterUserId);
+        } catch (Exception e) {
+            log.error("Error sending diary comment notification for diary {} by user {}: {}", diaryId, commenterUserId, e.getMessage());
+        }
+    }
+
+    /**
      * 일기 작성 알림 발송
      */
     public void sendDiaryReminderNotification(Long userId) {

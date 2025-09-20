@@ -17,7 +17,7 @@ public class AiChatDto {
     @NoArgsConstructor
     public static class Request {
 
-        @NotBlank(message = "질문 내용을 입력해 주세요.")
+        @NotBlank(message = "메시지를 입력해 주세요.")
         private String message;
 
         public Request(String message) {

@@ -108,12 +108,14 @@ public class CoupleMessageDto {
         private long usedCount;
         private long maxCount;
         private boolean canSend;
+        private LocalDateTime nextAvailableAt;
         
-        public static WeeklyUsage of(long usedCount, long maxCount) {
+        public static WeeklyUsage of(long usedCount, long maxCount, boolean canSend, LocalDateTime nextAvailableAt) {
             return WeeklyUsage.builder()
                     .usedCount(usedCount)
                     .maxCount(maxCount)
-                    .canSend(usedCount < maxCount)
+                    .canSend(canSend)
+                    .nextAvailableAt(nextAvailableAt)
                     .build();
         }
     }

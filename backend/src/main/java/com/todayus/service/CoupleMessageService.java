@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -31,7 +32,9 @@ public class CoupleMessageService {
     private final AIAnalysisService aiAnalysisService;
     private final NotificationService notificationService;
     
-    private static final long MAX_WEEKLY_MESSAGES = 1; // 주당 1개 제한
+    private static final Duration MESSAGE_COOLDOWN = Duration.ofHours(72);
+    private static final long MAX_MESSAGES_PER_WINDOW = 1;
+    private static final DateTimeFormatter COOLDOWN_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     
     /**
      * 새로운 대신 전달하기 메시지 생성
@@ -126,11 +129,14 @@ public class CoupleMessageService {
     @Transactional(readOnly = true)
     public CoupleMessageDto.WeeklyUsage getWeeklyUsage(String userEmail) {
         User user = getUserByEmail(userEmail);
-        LocalDateTime weekStart = LocalDateTime.now().minusWeeks(1);
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime cooldownStart = now.minus(MESSAGE_COOLDOWN);
 
-        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(user, weekStart);
+        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(user, cooldownStart);
+        LocalDateTime nextAvailableAt = calculateNextAvailableAt(user).orElse(null);
+        boolean canSend = nextAvailableAt == null;
 
-        return CoupleMessageDto.WeeklyUsage.of(usedCount, MAX_MESSAGES_PER_WINDOW);
+        return CoupleMessageDto.WeeklyUsage.of(usedCount, MAX_MESSAGES_PER_WINDOW, canSend, nextAvailableAt);
     }
     
     /**
@@ -227,12 +233,17 @@ public class CoupleMessageService {
     /**
      * 주간 사용 제한 확인
      */    private void checkUsageCooldown(User sender) {
-        LocalDateTime cooldownStart = LocalDateTime.now().minus(MESSAGE_COOLDOWN);
-        long recentMessages = coupleMessageRepository.countBySenderAndCreatedAtAfter(sender, cooldownStart);
+        calculateNextAvailableAt(sender).ifPresent(nextAvailableAt -> {
+            String formatted = nextAvailableAt.format(COOLDOWN_DISPLAY_FORMAT);
+            throw new IllegalStateException("마음 전하기는 3일에 한 번만 보낼 수 있어요. " + formatted + " 이후에 다시 시도해 주세요.");
+        });
+    }
 
-        if (recentMessages >= MAX_MESSAGES_PER_WINDOW) {
-            throw new IllegalStateException("마음 전하기는 3일에 한 번만 보낼 수 있어요. 조금만 기다려 주세요.");
-        }
+    private Optional<LocalDateTime> calculateNextAvailableAt(User sender) {
+        return coupleMessageRepository.findTopBySenderOrderByCreatedAtDesc(sender)
+                .map(CoupleMessage::getCreatedAt)
+                .map(createdAt -> createdAt.plus(MESSAGE_COOLDOWN))
+                .filter(nextAvailable -> nextAvailable.isAfter(LocalDateTime.now()));
     }
     }
     

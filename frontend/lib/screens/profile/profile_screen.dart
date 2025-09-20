@@ -8,7 +8,6 @@ import '../../services/anniversary_service.dart';
 import '../../services/diary_service.dart';
 import '../../services/notification_service.dart';
 import '../../services/profile_image_service.dart';
-import '../anniversary/anniversary_management_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,30 +22,30 @@ class _ProfileScreenState extends State<ProfileScreen>
   late Animation<double> _fadeAnimation;
 
   final DiaryService _diaryService = DiaryService();
-  
+
   String? _nickname;
   String? _userEmail;
   String? _profileImageUrl;
   File? _selectedImage;
   DateTime? _anniversaryDate;
   bool _isLoading = true;
-  
+
   // Statistics
   int _totalDiaries = 0;
   List<Map<String, dynamic>> _emotionStats = [];
-  
+
   // Notification settings
   Map<String, bool> _notificationSettings = {
     'diary': true,
+    'diary_created': true,
+    'diary_comment': true,
     'couple_message': true,
-    'anniversary': false,
-    'weekly_feedback': true,
   };
 
   @override
   void initState() {
     super.initState();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -74,7 +73,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       final nickname = await NicknameService.getNickname();
       final email = await AuthService.getCurrentUserEmail();
       final anniversary = await AnniversaryService.getAnniversary();
-      
+
       // 프로필 이미지 URL 가져오기
       String? profileImageUrl;
       try {
@@ -86,11 +85,11 @@ class _ProfileScreenState extends State<ProfileScreen>
       // Load statistics
       int totalDiaries = 0;
       List<Map<String, dynamic>> emotionStats = [];
-      
+
       try {
         final recentDiaries = await _diaryService.getRecentDiaries(limit: 100);
         totalDiaries = recentDiaries.length;
-        
+
         // Get emotion stats for the last 30 days
         final endDate = DateTime.now();
         final startDate = endDate.subtract(const Duration(days: 30));
@@ -105,15 +104,16 @@ class _ProfileScreenState extends State<ProfileScreen>
       // Load notification settings
       Map<String, bool> notificationSettings = {};
       try {
-        notificationSettings = await NotificationService.getAllNotificationSettings();
+        notificationSettings =
+            await NotificationService.getAllNotificationSettings();
       } catch (notificationError) {
         print('Error loading notification settings: $notificationError');
         // Use default settings if error
         notificationSettings = {
           'diary': true,
+          'diary_created': true,
+          'diary_comment': true,
           'couple_message': true,
-          'anniversary': false,
-          'weekly_feedback': true,
         };
       }
 
@@ -128,7 +128,7 @@ class _ProfileScreenState extends State<ProfileScreen>
           _notificationSettings = notificationSettings;
           _isLoading = false;
         });
-        
+
         _fadeController.forward();
       }
     } catch (e) {
@@ -145,20 +145,18 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _updateNotificationSetting(String type, bool enabled) async {
     try {
       await NotificationService.setNotificationEnabled(type, enabled);
-      
+
       if (mounted) {
         setState(() {
           _notificationSettings[type] = enabled;
         });
-        
+
         // 사용자에게 피드백 제공
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              enabled 
+            content: Text(enabled
                 ? '${_getNotificationTypeName(type)} 알림이 활성화되었습니다'
-                : '${_getNotificationTypeName(type)} 알림이 비활성화되었습니다'
-            ),
+                : '${_getNotificationTypeName(type)} 알림이 비활성화되었습니다'),
             backgroundColor: enabled ? Colors.green : Colors.orange,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -169,7 +167,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       print('Error updating notification setting: $e');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -187,12 +185,12 @@ class _ProfileScreenState extends State<ProfileScreen>
     switch (type) {
       case 'diary':
         return '일기 작성';
+      case 'diary_created':
+        return '파트너 일기';
+      case 'diary_comment':
+        return '댓글';
       case 'couple_message':
-        return '커플 메시지';
-      case 'anniversary':
-        return '기념일';
-      case 'weekly_feedback':
-        return '주간 피드백';
+        return '대신 전해주기';
       default:
         return '알림';
     }
@@ -202,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen>
   Future<void> _sendTestNotification() async {
     try {
       await NotificationService.sendTestNotification();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -217,7 +215,7 @@ class _ProfileScreenState extends State<ProfileScreen>
       }
     } catch (e) {
       print('Error sending test notification: $e');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -264,15 +262,26 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   String _getFormattedAnniversary() {
     if (_anniversaryDate == null) return '설정되지 않음';
-    
+
     final monthNames = [
-      '1월', '2월', '3월', '4월', '5월', '6월',
-      '7월', '8월', '9월', '10월', '11월', '12월'
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월'
     ];
-    
+
     final days = AnniversaryService.calculateDaysSince(_anniversaryDate!);
-    final formattedDate = '${_anniversaryDate!.year}년 ${monthNames[_anniversaryDate!.month - 1]} ${_anniversaryDate!.day}일';
-    
+    final formattedDate =
+        '${_anniversaryDate!.year}년 ${monthNames[_anniversaryDate!.month - 1]} ${_anniversaryDate!.day}일';
+
     return '$formattedDate (D+$days)';
   }
 
@@ -281,7 +290,6 @@ class _ProfileScreenState extends State<ProfileScreen>
     // 바로 갤러리에서 이미지 선택
     await _pickImage(ImageSource.gallery);
   }
-
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -292,15 +300,16 @@ class _ProfileScreenState extends State<ProfileScreen>
         maxHeight: 512,
         imageQuality: 80,
       );
-      
+
       if (pickedFile != null) {
         final imageFile = File(pickedFile.path);
-        
+
         // 파일 유효성 검증
         if (!ProfileImageService.validateImageFile(imageFile)) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('유효하지 않은 이미지 파일입니다. (최대 5MB, jpg/png/gif/webp만 허용)'),
+              content:
+                  Text('유효하지 않은 이미지 파일입니다. (최대 5MB, jpg/png/gif/webp만 허용)'),
               backgroundColor: Colors.red,
               behavior: SnackBarBehavior.floating,
             ),
@@ -321,16 +330,17 @@ class _ProfileScreenState extends State<ProfileScreen>
 
         try {
           // 서버에 업로드
-          final imageUrl = await ProfileImageService.uploadProfileImage(imageFile);
-          
+          final imageUrl =
+              await ProfileImageService.uploadProfileImage(imageFile);
+
           if (mounted) {
             Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-            
+
             setState(() {
               _selectedImage = imageFile;
               _profileImageUrl = imageUrl;
             });
-            
+
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('프로필 사진이 성공적으로 업로드되었습니다! 📸'),
@@ -345,7 +355,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         } catch (e) {
           if (mounted) {
             Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-            
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('프로필 사진 업로드 실패: ${e.toString()}'),
@@ -402,7 +412,7 @@ class _ProfileScreenState extends State<ProfileScreen>
 
       if (mounted) {
         Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-        
+
         setState(() {
           _selectedImage = null;
           _profileImageUrl = null;
@@ -422,7 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen>
     } catch (e) {
       if (mounted) {
         Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('프로필 사진 삭제 실패: ${e.toString()}'),
@@ -449,8 +459,9 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   /// 닉네임 편집
   Future<void> _editNickname() async {
-    final TextEditingController controller = TextEditingController(text: _nickname);
-    
+    final TextEditingController controller =
+        TextEditingController(text: _nickname);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -546,7 +557,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                               children: [
                                 // App Bar
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(20, 16, 20, 24),
                                   child: Row(
                                     children: [
                                       const Text(
@@ -561,29 +573,30 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     ],
                                   ),
                                 ),
-                                
+
                                 // Profile Header
                                 _buildCleanProfileHeader(),
-                                
+
                                 const SizedBox(height: 8),
                               ],
                             ),
                           ),
                         ),
-                        
+
                         // Content with overlap effect
                         SliverToBoxAdapter(
                           child: Transform.translate(
                             offset: const Offset(0, -10),
                             child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
                               child: Column(
                                 children: [
                                   const SizedBox(height: 20),
-                                  
+
                                   // Settings Section
                                   _buildSettingsSection(),
-                                  
+
                                   const SizedBox(height: 100), // Bottom padding
                                 ],
                               ),
@@ -638,15 +651,21 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 errorBuilder: (context, error, stackTrace) {
                                   return _buildDefaultAvatar();
                                 },
-                                loadingBuilder: (context, child, loadingProgress) {
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return Center(
                                     child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                              loadingProgress.expectedTotalBytes!
-                                          : null,
-                                      valueColor: const AlwaysStoppedAnimation<Color>(
+                                      value:
+                                          loadingProgress.expectedTotalBytes !=
+                                                  null
+                                              ? loadingProgress
+                                                      .cumulativeBytesLoaded /
+                                                  loadingProgress
+                                                      .expectedTotalBytes!
+                                              : null,
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
                                         Color(0xFF667eea),
                                       ),
                                     ),
@@ -706,9 +725,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               ],
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           GestureDetector(
             onTap: _editNickname,
             child: Row(
@@ -731,9 +750,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               ],
             ),
           ),
-          
+
           const SizedBox(height: 6),
-          
+
           Text(
             _userEmail ?? '',
             style: TextStyle(
@@ -742,10 +761,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               fontWeight: FontWeight.w400,
             ),
           ),
-          
+
           if (_anniversaryDate != null) ...[
             const SizedBox(height: 12),
-            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               decoration: BoxDecoration(
@@ -939,10 +957,8 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          
           if (_emotionStats.isNotEmpty) ...[
             const SizedBox(height: 24),
-            
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -960,15 +976,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                       color: Colors.grey.shade700,
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
+
                   // Top emotions with progress bars
                   Column(
                     children: _emotionStats.take(3).map((stat) {
                       final emotion = stat['emotion'] as String;
                       final percentage = stat['percentage'] as double;
-                      
+
                       return Container(
                         margin: const EdgeInsets.only(bottom: 16),
                         child: Column(
@@ -983,7 +999,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                     borderRadius: BorderRadius.circular(16),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.05),
+                                        color: Colors.black
+                                            .withValues(alpha: 0.05),
                                         blurRadius: 4,
                                         offset: const Offset(0, 2),
                                       ),
@@ -999,10 +1016,12 @@ class _ProfileScreenState extends State<ProfileScreen>
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
                                             _getEmotionLabel(emotion),
@@ -1027,7 +1046,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         height: 4,
                                         decoration: BoxDecoration(
                                           color: Colors.grey.shade200,
-                                          borderRadius: BorderRadius.circular(2),
+                                          borderRadius:
+                                              BorderRadius.circular(2),
                                         ),
                                         child: FractionallySizedBox(
                                           alignment: Alignment.centerLeft,
@@ -1035,9 +1055,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                                           child: Container(
                                             decoration: BoxDecoration(
                                               gradient: const LinearGradient(
-                                                colors: [Color(0xFF667eea), Color(0xFF764ba2)],
+                                                colors: [
+                                                  Color(0xFF667eea),
+                                                  Color(0xFF764ba2)
+                                                ],
                                               ),
-                                              borderRadius: BorderRadius.circular(2),
+                                              borderRadius:
+                                                  BorderRadius.circular(2),
                                             ),
                                           ),
                                         ),
@@ -1057,7 +1081,6 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ] else ...[
             const SizedBox(height: 24),
-            
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(24),
@@ -1180,16 +1203,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          
           const SizedBox(height: 20),
-          
-          _buildModernSettingsTile(
-            icon: Icons.celebration,
-            title: '기념일 관리',
-            subtitle: '특별한 날들을 확인하고 관리하세요',
-            onTap: _showAnniversaryManagement,
-          ),
-          const SizedBox(height: 8),
           _buildModernSettingsTile(
             icon: Icons.notifications,
             title: '알림 설정',
@@ -1250,14 +1264,14 @@ class _ProfileScreenState extends State<ProfileScreen>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: isDestructive 
+                  color: isDestructive
                       ? Colors.red.withValues(alpha: 0.1)
                       : const Color(0xFF667eea).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: isDestructive 
+                  color: isDestructive
                       ? Colors.red.shade600
                       : const Color(0xFF667eea),
                   size: 20,
@@ -1271,7 +1285,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     Text(
                       title,
                       style: TextStyle(
-                        color: isDestructive 
+                        color: isDestructive
                             ? Colors.red.shade600
                             : Colors.black87,
                         fontWeight: FontWeight.w600,
@@ -1282,7 +1296,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                     Text(
                       subtitle,
                       style: TextStyle(
-                        color: isDestructive 
+                        color: isDestructive
                             ? Colors.red.shade400
                             : Colors.grey.shade600,
                         fontSize: 13,
@@ -1320,14 +1334,14 @@ class _ProfileScreenState extends State<ProfileScreen>
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: isDestructive 
+                color: isDestructive
                     ? Colors.red.withValues(alpha: 0.1)
                     : const Color(0xFF667eea).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
                 icon,
-                color: isDestructive 
+                color: isDestructive
                     ? Colors.red.shade600
                     : const Color(0xFF667eea),
                 size: 18,
@@ -1341,9 +1355,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Text(
                     title,
                     style: TextStyle(
-                      color: isDestructive 
-                          ? Colors.red.shade600
-                          : Colors.black87,
+                      color:
+                          isDestructive ? Colors.red.shade600 : Colors.black87,
                       fontWeight: FontWeight.w500,
                       fontSize: 14,
                     ),
@@ -1352,7 +1365,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Text(
                     subtitle,
                     style: TextStyle(
-                      color: isDestructive 
+                      color: isDestructive
                           ? Colors.red.shade400
                           : Colors.grey.shade600,
                       fontSize: 12,
@@ -1383,155 +1396,176 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   String _getEmotionEmoji(String emotion) {
     switch (emotion) {
-      case '😊': return '😊';
-      case '🥰': return '🥰';
-      case '😌': return '😌';
-      case '😔': return '😔';
-      case '😠': return '😠';
-      case '😰': return '😰';
-      case '🤔': return '🤔';
-      case '😴': return '😴';
-      default: return emotion;
+      case '😊':
+        return '😊';
+      case '🥰':
+        return '🥰';
+      case '😌':
+        return '😌';
+      case '😔':
+        return '😔';
+      case '😠':
+        return '😠';
+      case '😰':
+        return '😰';
+      case '🤔':
+        return '🤔';
+      case '😴':
+        return '😴';
+      default:
+        return emotion;
     }
   }
 
   String _getEmotionLabel(String emotion) {
     switch (emotion) {
-      case '😊': return '행복해요';
-      case '🥰': return '사랑스러워요';
-      case '😌': return '평온해요';
-      case '😔': return '우울해요';
-      case '😠': return '화나요';
-      case '😰': return '불안해요';
-      case '🤔': return '복잡해요';
-      case '😴': return '피곤해요';
-      default: return emotion;
+      case '😊':
+        return '행복해요';
+      case '🥰':
+        return '사랑스러워요';
+      case '😌':
+        return '평온해요';
+      case '😔':
+        return '우울해요';
+      case '😠':
+        return '화나요';
+      case '😰':
+        return '불안해요';
+      case '🤔':
+        return '복잡해요';
+      case '😴':
+        return '피곤해요';
+      default:
+        return emotion;
     }
   }
 
-  // 기념일 관리 화면으로 이동
-  void _showAnniversaryManagement() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const AnniversaryManagementScreen(),
-      ),
-    ).then((_) {
-      // 기념일 관리 화면에서 돌아올 때 데이터 새로고침
-      _loadUserData();
-    });
-  }
-
-  // 알림 설정 기능
+// 알림 설정 기능
   void _showNotificationSettings() {
+    final localSettings = Map<String, bool>.from(_notificationSettings);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        height: MediaQuery.of(context).size.height * 0.7,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              margin: const EdgeInsets.only(top: 8),
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> handleToggle(String type, bool value) async {
+              setModalState(() {
+                localSettings[type] = value;
+              });
+              await _updateNotificationSetting(type, value);
+            }
+
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-            ),
-            
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
+              child: Column(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    margin: const EdgeInsets.only(top: 8),
+                    width: 40,
+                    height: 4,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF667eea).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.notifications,
-                      color: Color(0xFF667eea),
-                      size: 24,
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  const Text(
-                    '알림 설정',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color:
+                                const Color(0xFF667eea).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.notifications,
+                            color: Color(0xFF667eea),
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        const Text(
+                          '알림 설정',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      children: [
+                        _buildNotificationTile(
+                          title: '일기 작성 알림',
+                          subtitle: '매일 저녁 6시에 일기 작성을 도와드려요',
+                          value: localSettings['diary'] ?? true,
+                          onChanged: (value) => handleToggle('diary', value),
+                        ),
+                        _buildNotificationTile(
+                          title: '파트너 일기 알림',
+                          subtitle: '상대가 새 일기를 작성하면 알려드려요',
+                          value: localSettings['diary_created'] ?? true,
+                          onChanged: (value) =>
+                              handleToggle('diary_created', value),
+                        ),
+                        _buildNotificationTile(
+                          title: '댓글 알림',
+                          subtitle: '상대가 당신의 일기에 댓글을 남기면 알려드려요',
+                          value: localSettings['diary_comment'] ?? true,
+                          onChanged: (value) =>
+                              handleToggle('diary_comment', value),
+                        ),
+                        _buildNotificationTile(
+                          title: '대신 전해주기 알림',
+                          subtitle: '상대가 마음을 대신 전해주기 기능을 사용하면 알려드려요',
+                          value: localSettings['couple_message'] ?? true,
+                          onChanged: (value) =>
+                              handleToggle('couple_message', value),
+                        ),
+                        Container(
+                          margin: const EdgeInsets.only(top: 20),
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _sendTestNotification,
+                            icon: const Icon(Icons.notification_add,
+                                color: Colors.white),
+                            label: const Text(
+                              '테스트 알림 보내기',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF667eea),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
-            ),
-            
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                children: [
-                  _buildNotificationTile(
-                    title: '일기 작성 알림',
-                    subtitle: '매일 저녁 일기 작성을 알려드려요',
-                    value: _notificationSettings['diary'] ?? true,
-                    onChanged: (value) => _updateNotificationSetting('diary', value),
-                  ),
-                  _buildNotificationTile(
-                    title: '커플 메시지 알림',
-                    subtitle: '파트너가 메시지를 보낼 때 알려드려요',
-                    value: _notificationSettings['couple_message'] ?? true,
-                    onChanged: (value) => _updateNotificationSetting('couple_message', value),
-                  ),
-                  _buildNotificationTile(
-                    title: '기념일 알림',
-                    subtitle: '특별한 날을 미리 알려드려요',
-                    value: _notificationSettings['anniversary'] ?? false,
-                    onChanged: (value) => _updateNotificationSetting('anniversary', value),
-                  ),
-                  _buildNotificationTile(
-                    title: '주간 피드백 알림',
-                    subtitle: '주간 감정 분석 결과를 알려드려요',
-                    value: _notificationSettings['weekly_feedback'] ?? true,
-                    onChanged: (value) => _updateNotificationSetting('weekly_feedback', value),
-                  ),
-                  
-                  // 테스트 알림 버튼 추가
-                  Container(
-                    margin: const EdgeInsets.only(top: 20),
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: _sendTestNotification,
-                      icon: const Icon(Icons.notification_add, color: Colors.white),
-                      label: const Text(
-                        '테스트 알림 보내기',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF667eea),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1607,7 +1641,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -1636,7 +1669,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
             ),
-            
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1646,26 +1678,26 @@ class _ProfileScreenState extends State<ProfileScreen>
                     _buildPrivacySection(
                       '1. 개인정보의 처리 목적',
                       'TodayUs는 다음의 목적을 위하여 개인정보를 처리합니다.\n\n'
-                      '• 서비스 제공 및 계정 관리\n'
-                      '• 일기 작성 및 감정 분석 서비스\n'
-                      '• 커플 연결 및 소통 기능\n'
-                      '• 서비스 개선 및 통계 분석',
+                          '• 서비스 제공 및 계정 관리\n'
+                          '• 일기 작성 및 감정 분석 서비스\n'
+                          '• 커플 연결 및 소통 기능\n'
+                          '• 서비스 개선 및 통계 분석',
                     ),
                     _buildPrivacySection(
                       '2. 개인정보의 처리 및 보유기간',
                       '회원가입일로부터 서비스 탈퇴 시까지 보유합니다.\n'
-                      '단, 관련 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관합니다.',
+                          '단, 관련 법령에 따라 일정 기간 보관이 필요한 경우 해당 기간 동안 보관합니다.',
                     ),
                     _buildPrivacySection(
                       '3. 개인정보의 제3자 제공',
                       'TodayUs는 원칙적으로 이용자의 개인정보를 외부에 제공하지 않습니다.\n'
-                      '다만, 법령에 의해 요구되는 경우는 예외입니다.',
+                          '다만, 법령에 의해 요구되는 경우는 예외입니다.',
                     ),
                     _buildPrivacySection(
                       '4. 개인정보 보호책임자',
                       '개인정보 보호에 관한 문의사항이 있으시면 아래 연락처로 문의해 주세요.\n\n'
-                      '이메일: privacy@todayus.com\n'
-                      '전화: 02-1234-5678',
+                          '이메일: privacy@todayus.com\n'
+                          '전화: 02-1234-5678',
                     ),
                     const SizedBox(height: 20),
                   ],
@@ -1734,7 +1766,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
-            
             Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
@@ -1763,7 +1794,6 @@ class _ProfileScreenState extends State<ProfileScreen>
                 ],
               ),
             ),
-            
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(horizontal: 20),

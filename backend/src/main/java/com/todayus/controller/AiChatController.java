@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,10 +23,15 @@ public class AiChatController {
 
     @PostMapping("/chat")
     public ResponseEntity<AiChatDto.Response> chat(
-            @AuthenticationPrincipal CustomOAuth2User user,
+            Authentication authentication,
             @Valid @RequestBody AiChatDto.Request request
     ) {
+        CustomOAuth2User user = (authentication != null && authentication.getPrincipal() instanceof CustomOAuth2User)
+                ? (CustomOAuth2User) authentication.getPrincipal()
+                : null;
+
         if (user == null) {
+            log.warn("AI chat request rejected: no authenticated user");
             return ResponseEntity.status(401).build();
         }
 

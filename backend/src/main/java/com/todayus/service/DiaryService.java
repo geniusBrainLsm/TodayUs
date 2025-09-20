@@ -194,6 +194,25 @@ public class DiaryService {
             throw e;
         }
         
+        if (!user.getId().equals(diary.getUser().getId())) {
+            try {
+                String commenterName = (user.getNickname() != null && !user.getNickname().isBlank())
+                        ? user.getNickname()
+                        : user.getName();
+
+                notificationService.sendDiaryCommentNotification(
+                    user.getId(),
+                    commenterName,
+                    diary.getId(),
+                    diary.getTitle(),
+                    comment.getId(),
+                    comment.getContent()
+                );
+            } catch (Exception e) {
+                log.warn("Failed to send diary comment notification for diary {} by user {}: {}", diaryId, userEmail, e.getMessage());
+            }
+        }
+
         log.info("Comment added to diary: {} by user: {}", diaryId, userEmail);
         
         DiaryDto.CommentResponse response = DiaryDto.CommentResponse.from(comment, user);

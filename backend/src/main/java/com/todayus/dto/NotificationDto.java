@@ -17,7 +17,7 @@ public class NotificationDto {
         private String title;
         private String body;
         private Map<String, String> data;
-        private String type; // diary, anniversary, couple_message, weekly_feedback
+        private String type; // diary_reminder, diary_created, diary_comment, couple_message
     }
     
     @Data
