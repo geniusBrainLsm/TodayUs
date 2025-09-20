@@ -375,8 +375,8 @@ class _HomeScreenState extends State<HomeScreen>
           
           const SizedBox(height: 24),
           
-          // AI 일일 응원 메시지
-          _buildDailyMessage(),
+          // 액션 버튼들 (관계분석, 일기작성, 대신 전해주기)
+          _buildActionButtons(),
           
           const SizedBox(height: 24),
           
@@ -413,39 +413,55 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // OO봇 일일 응원 메시지
-  Widget _buildDailyMessage() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.blue[100]!,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(
-            Icons.auto_awesome,
-            color: Colors.blue[600],
-            size: 28,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            _getDailyMessage(),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.blue[800],
-              height: 1.5,
-              fontWeight: FontWeight.w500,
+  // 액션 버튼들 (관계분석, 일기작성, 대신 전해주기)
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            // 관계분석 버튼
+            Expanded(
+              child: _buildActionCard(
+                title: '관계분석',
+                subtitle: 'AI가 분석해드려요',
+                icon: Icons.psychology,
+                color: Colors.purple,
+                onTap: () => _showRelationshipAnalysis(),
+              ),
             ),
-          ),
-        ],
-      ),
+            const SizedBox(width: 12),
+            // 일기작성 버튼
+            Expanded(
+              child: _buildActionCard(
+                title: '일기작성',
+                subtitle: '오늘의 이야기를',
+                icon: Icons.edit,
+                color: Colors.green,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const DiaryWriteScreen(),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        // 대신 전해주기 버튼 (가로로 전체)
+        _buildActionCard(
+          title: '대신 전해주기',
+          subtitle: 'AI가 따뜻하게 전달해드려요',
+          icon: Icons.favorite,
+          color: Colors.pink,
+          onTap: () {
+            Navigator.pushNamed(context, '/couple-message-create');
+          },
+          isWide: true,
+        ),
+      ],
     );
   }
 
@@ -1067,6 +1083,23 @@ class _HomeScreenState extends State<HomeScreen>
                 color: Colors.grey[600],
               ),
             ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.blue[100]!, width: 1),
+              ),
+              child: Text(
+                _getDailyMessage(),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.blue[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
           ],
         ),
         // D-day (단순 텍스트)
@@ -1140,6 +1173,23 @@ class _HomeScreenState extends State<HomeScreen>
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.blue[100]!, width: 1),
+                    ),
+                    child: Text(
+                      _getDailyMessage(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ],
@@ -2212,16 +2262,11 @@ class _HomeScreenState extends State<HomeScreen>
           context: context,
           barrierDismissible: false,
           builder: (context) => CoupleMessagePopup(
-            message: message,
-            onDismiss: () async {
-              // 메시지를 읽음으로 표시
-              await CoupleMessageService.markAsDelivered(message['id']);
-
+            messageData: message,
+            onClosed: () async {
               setState(() {
                 _hasUnreadCoupleMessage = false;
               });
-
-              Navigator.of(context).pop();
             },
           ),
         );
@@ -2229,6 +2274,144 @@ class _HomeScreenState extends State<HomeScreen>
     } catch (e) {
       print('🔴 Error showing couple message popup: $e');
     }
+  }
+
+  // 관계분석 다이얼로그 표시
+  void _showRelationshipAnalysis() async {
+    try {
+      // 로딩 다이얼로그 표시
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      // 커플 요약 가져오기
+      final summary = await DiaryService.getCoupleSummary();
+
+      if (mounted) {
+        Navigator.pop(context); // 로딩 다이얼로그 닫기
+
+        // 관계분석 결과 다이얼로그
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text(
+              '💕 관계분석 결과',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.purple[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.purple[100]!),
+                  ),
+                  child: Text(
+                    summary['summary'] ?? '분석 결과를 가져올 수 없습니다.',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.6,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('확인'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // 로딩 다이얼로그 닫기
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('관계분석을 가져오는데 실패했습니다.')),
+        );
+      }
+    }
+  }
+
+  // 액션 카드 위젯
+  Widget _buildActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required MaterialColor color,
+    required VoidCallback onTap,
+    bool isWide = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: isWide ? double.infinity : null,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              color[50]!,
+              color[100]!,
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: color[200]!,
+            width: 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: color[100]!.withValues(alpha: 0.5),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: color[600],
+              size: isWide ? 32 : 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: isWide ? 18 : 16,
+                fontWeight: FontWeight.w700,
+                color: color[800],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: isWide ? 14 : 13,
+                color: color[600],
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
