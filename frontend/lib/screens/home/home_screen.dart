@@ -128,14 +128,50 @@ class _HomeScreenState extends State<HomeScreen>
       print('🟡 GPT 일일 메시지 로딩 시작');
       final message = await DailyMessageService.getTodaysDailyMessage();
 
-      if (mounted && message != null) {
+      if (mounted && message != null && message.isNotEmpty) {
         setState(() {
           _gptDailyMessage = message;
         });
-        print('🟢 GPT 일일 메시지 로딩 완료: $message');
+        print('🟢 GPT 일일 메시지 로딩 성공: $message');
+      } else {
+        print('🔴 GPT 일일 메시지 로딩 실패 - 기본 메시지 사용');
+        // GPT 실패 시 기본 메시지 사용
+        final fallbackMessages = [
+          "새로운 하루, 새로운 추억을 만들어보세요! ✨",
+          "오늘도 사랑하는 사람과 함께하는 소중한 하루가 되길 바라요 💕",
+          "행복은 함께 나눌 때 더욱 커진다고 해요. 오늘도 행복하세요! 🌟",
+          "매일매일이 특별한 기념일이 될 수 있어요. 오늘은 어떤 날로 만들어볼까요? 🎈",
+          "작은 것에도 감사하며, 사랑을 나누는 하루가 되시길 바라요 🌸"
+        ];
+        final index = DateTime.now().day % fallbackMessages.length;
+        final fallbackMessage = fallbackMessages[index];
+
+        if (mounted) {
+          setState(() {
+            _gptDailyMessage = fallbackMessage;
+          });
+          print('🟢 기본 메시지 설정 완료: $fallbackMessage');
+        }
       }
     } catch (e) {
       print('🔴 GPT 일일 메시지 로딩 오류: $e');
+      // 오류 시에도 기본 메시지 사용
+      final fallbackMessages = [
+        "새로운 하루, 새로운 추억을 만들어보세요! ✨",
+        "오늘도 사랑하는 사람과 함께하는 소중한 하루가 되길 바라요 💕",
+        "행복은 함께 나눌 때 더욱 커진다고 해요. 오늘도 행복하세요! 🌟",
+        "매일매일이 특별한 기념일이 될 수 있어요. 오늘은 어떤 날로 만들어볼까요? 🎈",
+        "작은 것에도 감사하며, 사랑을 나누는 하루가 되시길 바라요 🌸"
+      ];
+      final index = DateTime.now().day % fallbackMessages.length;
+      final fallbackMessage = fallbackMessages[index];
+
+      if (mounted) {
+        setState(() {
+          _gptDailyMessage = fallbackMessage;
+        });
+        print('🟢 오류 시 기본 메시지 설정 완료: $fallbackMessage');
+      }
     }
   }
 
@@ -1063,44 +1099,31 @@ class _HomeScreenState extends State<HomeScreen>
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // OO봇의 오늘의 한마디
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '안녕하세요! 👋',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'OO봇의 오늘의 한마디',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue[100]!, width: 1),
-              ),
-              child: Text(
-                _getDailyMessage(),
+        // OO봇의 오늘의 한마디 (간단한 텍스트로만)
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '안녕하세요! 👋',
                 style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.blue[700],
-                  fontWeight: FontWeight.w500,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Text(
+                _getDailyMessage(),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
         // D-day (단순 텍스트)
         if (_daysSince != null)
@@ -1281,74 +1304,6 @@ class _HomeScreenState extends State<HomeScreen>
                       );
                     },
                   ),
-            ),
-          ),
-          
-          const SizedBox(height: 24),
-          
-          // OO봇의 한마디 (기념일이면 특별한 스타일)
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _hasAnyTodaysAnniversary ? Colors.amber[50] : Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _hasAnyTodaysAnniversary ? Colors.amber[200]! : Colors.blue[100]!,
-                width: _hasAnyTodaysAnniversary ? 2 : 1,
-              ),
-              boxShadow: _hasAnyTodaysAnniversary ? [
-                BoxShadow(
-                  color: Colors.amber.withValues(alpha: 0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ] : null,
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _hasAnyTodaysAnniversary ? Icons.celebration : Icons.auto_awesome,
-                      color: _hasAnyTodaysAnniversary ? Colors.amber[700] : Colors.blue[600],
-                      size: 20,
-                    ),
-                    if (_todaysMilestone != null) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        _todaysMilestone!['title'],
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber[800],
-                        ),
-                      ),
-                    ] else if (_todaysCustomAnniversaries.isNotEmpty) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        _todaysCustomAnniversaries.first['title'],
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.amber[800],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _getDailyMessage(),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: _hasAnyTodaysAnniversary ? Colors.amber[900] : Colors.blue[800],
-                    height: 1.4,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
             ),
           ),
         ],
@@ -2289,7 +2244,7 @@ class _HomeScreenState extends State<HomeScreen>
       );
 
       // 커플 요약 가져오기
-      final summary = await DiaryService.getCoupleSummary();
+      final summary = await DiaryService().getCoupleSummary();
 
       if (mounted) {
         Navigator.pop(context); // 로딩 다이얼로그 닫기
@@ -2316,7 +2271,7 @@ class _HomeScreenState extends State<HomeScreen>
                     border: Border.all(color: Colors.purple[100]!),
                   ),
                   child: Text(
-                    summary['summary'] ?? '분석 결과를 가져올 수 없습니다.',
+                    summary,
                     style: const TextStyle(
                       fontSize: 16,
                       height: 1.6,

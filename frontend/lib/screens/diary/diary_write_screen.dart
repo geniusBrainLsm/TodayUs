@@ -315,14 +315,15 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
 
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      backgroundColor: const Color(0xFFF8F9FA),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
+              Color(0xFFF8F9FA),
+              Color(0xFFE9ECEF),
             ],
           ),
         ),
@@ -343,7 +344,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
                             onPressed: () => Navigator.of(context).pop(),
                             icon: const Icon(
                               Icons.arrow_back_ios,
-                              color: Colors.white,
+                              color: Colors.black87,
                             ),
                           ),
                           Expanded(
@@ -355,14 +356,14 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
                                   style: TextStyle(
                                     fontSize: 20,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: Colors.black87,
                                   ),
                                 ),
                                 Text(
                                   '${now.year}년 ${monthNames[now.month - 1]} ${now.day}일 (${weekdays[now.weekday - 1]})',
                                   style: TextStyle(
                                     fontSize: 14,
-                                    color: Colors.white.withValues(alpha: 0.8),
+                                    color: Colors.black54,
                                   ),
                                 ),
                               ],
@@ -370,7 +371,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: const Color(0xFF667eea),
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: TextButton(

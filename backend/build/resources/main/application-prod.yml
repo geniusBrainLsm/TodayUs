@@ -1,10 +1,10 @@
 spring:
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/todayus}
-    username: ${DB_USERNAME:todayus}
-    password: ${DB_PASSWORD:password}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/todayus}
+    username: ${SPRING_DATASOURCE_USERNAME:todayus}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
     driver-class-name: org.postgresql.Driver
-  
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,7 +13,7 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: false
-  
+
   security:
     oauth2:
       client:
@@ -25,16 +25,18 @@ spring:
               - openid
               - profile
               - email
-            redirect-uri: "${BASE_URL:http://localhost:8080}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
+
           kakao:
-            client-id: ${KAKAO_CLIENT_ID:e74f4850d8af7e2b2aec20f4faa636b3}
-            client-secret: ${KAKAO_CLIENT_SECRET:IOSjbcQZbcrB1NptoM85i9mHf1fRM5al}
+            client-id: ${KAKAO_CLIENT_ID:your-kakao-client-id}
+            client-secret: ${KAKAO_CLIENT_SECRET:your-kakao-client-secret}
             authorization-grant-type: authorization_code
-            redirect-uri: "${BASE_URL:http://localhost:8080}/login/oauth2/code/{registrationId}"
+            redirect-uri: "${BASE_URL}/login/oauth2/code/{registrationId}"
             scope:
               - profile_nickname
               - account_email
             client-name: Kakao
+
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -44,13 +46,18 @@ spring:
 
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: native
 
-# JWT 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
 jwt:
   secret: ${JWT_SECRET:myVerySecretKeyForJWTTokenGeneration123456789}
-  token-validity-in-seconds: 86400 # 24시간
+  token-validity-in-seconds: 86400
 
-# OpenAI 설정
 openai:
   api:
     key: ${OPENAI_API_KEY:your-openai-api-key}
@@ -64,9 +71,8 @@ logging:
     org.springframework.security.oauth2.client: WARN
     ROOT: INFO
 
-# 앱 설정
 app:
   oauth2:
-    authorized-redirect-uris: 
-      - ${BASE_URL:http://localhost:8080}
+    authorized-redirect-uris:
+      - ${BASE_URL}
       - ${FRONTEND_URL:http://localhost:53153}

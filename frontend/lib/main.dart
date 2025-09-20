@@ -13,6 +13,7 @@ import 'settings_screen.dart';
 import 'main_layout.dart';
 import 'screens/couple_message/couple_message_create_screen.dart';
 import 'screens/couple_message/couple_message_history_screen.dart';
+import 'screens/diary/diary_write_screen.dart';
 import 'config/environment.dart';
 import 'config/api_endpoints.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
@@ -180,6 +181,7 @@ class _TodayUsAppState extends State<TodayUsApp> {
         '/home': (context) => const MainLayout(),
         '/couple-message-create': (context) => const CoupleMessageCreateScreen(),
         '/couple-message-history': (context) => const CoupleMessageHistoryScreen(),
+        '/diary-write': (context) => const DiaryWriteScreen(),
       },
     );
   }

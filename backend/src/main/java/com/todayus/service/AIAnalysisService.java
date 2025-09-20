@@ -490,4 +490,81 @@ public class AIAnalysisService {
                 소중한 마음이 잘 전달되길 바라요.
                 """, senderNickname);
     }
+
+    /**
+     * AI로 일일 메시지 생성
+     */
+    public String generateDailyMessage() {
+        try {
+            String prompt = """
+                    오늘 하루를 시작하는 커플들에게 전할 따뜻하고 긍정적인 일일 메시지를 작성해주세요.
+
+                    조건:
+                    1. 20-30자 내외의 짧고 임팩트 있는 메시지
+                    2. 사랑, 행복, 희망, 감사 등의 긍정적인 감정 포함
+                    3. 커플이 함께 하는 일상의 소중함 강조
+                    4. 이모지 1-2개 포함
+                    5. 새로운 하루에 대한 기대감 표현
+
+                    예시 스타일:
+                    - "함께하는 모든 순간이 선물 같아요 🎁"
+                    - "오늘도 서로에게 힘이 되어주세요 💪"
+                    - "작은 행복들이 모여 큰 사랑이 되어요 ✨"
+                    """;
+
+            ChatCompletionRequest chatRequest = ChatCompletionRequest.builder()
+                    .model("gpt-4")
+                    .messages(List.of(
+                            new ChatMessage(ChatMessageRole.SYSTEM.value(), getDailyMessageSystemPrompt()),
+                            new ChatMessage(ChatMessageRole.USER.value(), prompt)
+                    ))
+                    .maxTokens(150)
+                    .temperature(0.7)
+                    .build();
+
+            List<ChatCompletionChoice> choices = openAiService.createChatCompletion(chatRequest).getChoices();
+
+            if (choices.isEmpty()) {
+                log.warn("No response from OpenAI for daily message");
+                return "새로운 하루, 새로운 추억을 만들어보세요! ✨";
+            }
+
+            String response = choices.get(0).getMessage().getContent().trim();
+
+            // 따옴표 제거
+            if (response.startsWith("\"") && response.endsWith("\"")) {
+                response = response.substring(1, response.length() - 1);
+            }
+
+            log.info("AI Daily Message Generated: {}", response);
+
+            return response;
+
+        } catch (Exception e) {
+            log.error("Error generating daily message: {}", e.getMessage(), e);
+            return "새로운 하루, 새로운 추억을 만들어보세요! ✨";
+        }
+    }
+
+    private String getDailyMessageSystemPrompt() {
+        return """
+                당신은 커플들에게 매일 따뜻한 메시지를 전하는 AI봇입니다.
+
+                역할:
+                - 커플들의 하루를 밝게 시작할 수 있는 긍정적인 메시지 작성
+                - 사랑과 행복에 대한 인사이트 제공
+                - 일상의 소중한 순간들에 대한 감사 표현
+
+                톤앤매너:
+                - 따뜻하고 친근한 말투
+                - 진부하지 않으면서도 감동적인 표현
+                - 실용적이면서도 로맨틱한 조언
+                - 간결하면서도 의미 있는 메시지
+
+                주의사항:
+                - 너무 뻔하거나 진부한 표현 피하기
+                - 특정 상황에 국한되지 않는 보편적인 메시지
+                - 자연스럽고 진정성 있는 표현 사용
+                """;
+    }
 }

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'dart:convert';
 import 'api_service.dart';
 import '../config/api_endpoints.dart';
@@ -25,10 +26,14 @@ class DiaryImageService {
       });
 
       // 파일 추가
+      final extension = _getFileExtension(imageFile.path).toLowerCase();
+      final contentType = _getContentType(extension);
+
       final multipartFile = await http.MultipartFile.fromPath(
         'file',
         imageFile.path,
-        filename: 'diary_image.${_getFileExtension(imageFile.path)}',
+        filename: 'diary_image.$extension',
+        contentType: MediaType.parse(contentType),
       );
       request.files.add(multipartFile);
 
@@ -82,10 +87,14 @@ class DiaryImageService {
       });
 
       // 파일 추가
+      final extension = _getFileExtension(imageFile.path).toLowerCase();
+      final contentType = _getContentType(extension);
+
       final multipartFile = await http.MultipartFile.fromPath(
         'file',
         imageFile.path,
-        filename: 'diary_image.${_getFileExtension(imageFile.path)}',
+        filename: 'diary_image.$extension',
+        contentType: MediaType.parse(contentType),
       );
       request.files.add(multipartFile);
 
@@ -176,6 +185,23 @@ class DiaryImageService {
       return '';
     }
     return filePath.substring(lastDotIndex + 1);
+  }
+
+  /// 확장자에 따른 Content-Type 반환
+  static String _getContentType(String extension) {
+    switch (extension.toLowerCase()) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg'; // 기본값
+    }
   }
 
   /// 이미지 크기 정보 가져오기
