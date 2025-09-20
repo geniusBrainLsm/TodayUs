@@ -1148,6 +1148,7 @@ class _HomeScreenState extends State<HomeScreen>
         // D-day (단순 텍스트)
         if (_daysSince != null)
           Container(
+            margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: const Color(0xFF2563EB).withOpacity(0.1),
@@ -1240,6 +1241,7 @@ class _HomeScreenState extends State<HomeScreen>
               // D-day (단순 텍스트)
               if (_daysSince != null)
                 Container(
+                  margin: const EdgeInsets.only(right: 12),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(

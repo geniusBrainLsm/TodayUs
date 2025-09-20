@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -41,7 +42,7 @@ public class CoupleMessageService {
         User receiver = getPartner(couple, sender);
         
         // 주간 사용 제한 확인
-        checkWeeklyUsageLimit(sender);
+        checkUsageCooldown(sender);
         
         // 메시지 생성 (PENDING 상태)
         CoupleMessage message = CoupleMessage.builder()
@@ -129,7 +130,7 @@ public class CoupleMessageService {
 
         long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(user, weekStart);
 
-        return CoupleMessageDto.WeeklyUsage.of(usedCount, MAX_WEEKLY_MESSAGES);
+        return CoupleMessageDto.WeeklyUsage.of(usedCount, MAX_MESSAGES_PER_WINDOW);
     }
     
     /**
@@ -225,14 +226,14 @@ public class CoupleMessageService {
     
     /**
      * 주간 사용 제한 확인
-     */
-    private void checkWeeklyUsageLimit(User sender) {
-        LocalDateTime weekStart = LocalDateTime.now().minusWeeks(1);
-        long usedCount = coupleMessageRepository.countBySenderAndCreatedAtAfter(sender, weekStart);
+     */    private void checkUsageCooldown(User sender) {
+        LocalDateTime cooldownStart = LocalDateTime.now().minus(MESSAGE_COOLDOWN);
+        long recentMessages = coupleMessageRepository.countBySenderAndCreatedAtAfter(sender, cooldownStart);
 
-        if (usedCount >= MAX_WEEKLY_MESSAGES) {
-            throw new IllegalStateException("주간 사용 제한에 도달했습니다. 일주일에 " + MAX_WEEKLY_MESSAGES + "개까지만 보낼 수 있습니다.");
+        if (recentMessages >= MAX_MESSAGES_PER_WINDOW) {
+            throw new IllegalStateException("마음 전하기는 3일에 한 번만 보낼 수 있어요. 조금만 기다려 주세요.");
         }
+    }
     }
     
     /**
