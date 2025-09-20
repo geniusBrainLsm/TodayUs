@@ -4,18 +4,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Git 저장소 클론
-                git branch: 'main',
-                    url: 'https://github.com/geniusBrainLsm/TodayUs.git'
+                checkout scm
             }
         }
 
         stage('Deploy Backend') {
             steps {
-                // Jenkins workspace에서 실행
                 sh '''
-                    pwd
-                    ls -la
                     docker-compose down || true
                     docker container rm -f todayus-backend || true
                     docker-compose build --no-cache backend
@@ -24,6 +19,14 @@ pipeline {
             }
         }
 
+        stage('Health Check') {
+            steps {
+                sh '''
+                    sleep 20
+                    curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 1
+                '''
+            }
+        }
     }
 
     post {
@@ -32,7 +35,7 @@ pipeline {
         }
         failure {
             echo '❌ Deployment failed!'
-            sh 'docker-compose logs backend || true'
+            sh 'docker-compose logs backend'
         }
     }
 }
