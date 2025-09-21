@@ -203,6 +203,8 @@ public class CoupleMessageService {
             fallbackProcessMessage(messageId);
         }
 
+    }
+
     /**
      * AI 처리 실패 시 원본 메시지로 처리
      */
