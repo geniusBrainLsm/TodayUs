@@ -48,4 +48,7 @@ public interface CoupleMessageRepository extends JpaRepository<CoupleMessage, Lo
     // AI 처리 대기중인 메시지들 조회
     @Query("SELECT cm FROM CoupleMessage cm WHERE cm.status = 'PENDING' ORDER BY cm.createdAt ASC")
     List<CoupleMessage> findPendingMessages();
+
+    // 특정 사용자가 보낸 가장 최근 메시지 조회 (쿨다운 계산용)
+    Optional<CoupleMessage> findTopBySenderOrderByCreatedAtDesc(User sender);
 }

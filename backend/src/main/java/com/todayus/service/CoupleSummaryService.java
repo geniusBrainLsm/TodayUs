@@ -119,4 +119,16 @@ public class CoupleSummaryService {
         int index = date.getDayOfYear() % fallbackSummaries.length;
         return fallbackSummaries[index];
     }
+
+    /**
+     * 주어진 요약이 폴백 요약인지 확인
+     */
+    private boolean isFallbackSummary(String summary, LocalDate date) {
+        if (summary == null || summary.trim().isEmpty()) {
+            return true;
+        }
+
+        String fallbackSummary = getFallbackSummary(date);
+        return summary.trim().equals(fallbackSummary.trim());
+    }
 }
