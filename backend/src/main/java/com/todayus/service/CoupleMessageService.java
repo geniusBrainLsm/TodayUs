@@ -161,84 +161,78 @@ public class CoupleMessageService {
     public void processMessageWithAI(Long messageId) {
         try {
             CoupleMessage message = coupleMessageRepository.findById(messageId)
-                    .orElseThrow(() -> new IllegalArgumentException("硫붿떆吏瑜?李얠쓣 ???놁뒿?덈떎."));
-            
+                    .orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
+
             if (message.getStatus() != CoupleMessage.MessageStatus.PENDING) {
-                log.warn("?대? 泥섎━??硫붿떆吏?낅땲?? {}", messageId);
+                log.warn("이미 처리된 메시지입니다: {}", messageId);
                 return;
             }
-            
-            log.info("AI 硫붿떆吏 泥섎━ ?쒖옉: {}", messageId);
-            
-            // 諛쒖떊?먯? ?섏떊???뺣낫 議고쉶
+
+            log.info("AI 메시지 처리 시작: {}", messageId);
+
             User sender = userRepository.findById(message.getSender().getId())
-                    .orElseThrow(() -> new IllegalStateException("諛쒖떊?먮? 李얠쓣 ???놁뒿?덈떎."));
+                    .orElseThrow(() -> new IllegalStateException("발신자를 찾을 수 없습니다."));
             User receiver = userRepository.findById(message.getReceiver().getId())
-                    .orElseThrow(() -> new IllegalStateException("?섏떊?먮? 李얠쓣 ???놁뒿?덈떎."));
-            
-            // AI濡?硫붿떆吏 ?쒗솕 泥섎━
+                    .orElseThrow(() -> new IllegalStateException("수신자를 찾을 수 없습니다."));
+
             String processedMessage = aiAnalysisService.processMessageForCouple(
                     message.getOriginalMessage(),
                     sender.getNickname(),
                     receiver.getNickname()
             );
-            
-            // 泥섎━ ?꾨즺 ??READY ?곹깭濡?蹂寃?
+
             message.setAiProcessedMessage(processedMessage);
             message.setStatus(CoupleMessage.MessageStatus.READY);
             coupleMessageRepository.save(message);
 
-            // ?뚰듃?덉뿉寃??뚮┝ 諛쒖넚
             try {
                 sendCoupleMessageNotification(sender, receiver, processedMessage);
             } catch (Exception e) {
-                log.warn("????꾪빐二쇨린 ?뚮┝ 諛쒖넚 ?ㅽ뙣: {}", e.getMessage());
+                log.warn("대신 전해주기 알림 발송 실패: {}", e.getMessage());
             }
 
-            log.info("AI 硫붿떆吏 泥섎━ ?꾨즺: {} -> '{}'", messageId, processedMessage);
-            
+            log.info("AI 메시지 처리 완료: {} -> '{}'", messageId, processedMessage);
         } catch (Exception e) {
-            log.error("AI 硫붿떆吏 泥섎━ ?ㅽ뙣: {}", messageId, e);
-            // ?ㅽ뙣??寃쎌슦?먮룄 ?먮낯 硫붿떆吏濡??꾨떖
+            log.error("AI 메시지 처리 실패: {}", messageId, e);
             fallbackProcessMessage(messageId);
         }
     }
-    
-    /**
-     * AI 泥섎━ ?ㅽ뙣 ???먮낯 硫붿떆吏濡?泥섎━
-     */
+
     private void fallbackProcessMessage(Long messageId) {
         try {
             CoupleMessage message = coupleMessageRepository.findById(messageId)
-                    .orElseThrow(() -> new IllegalArgumentException("硫붿떆吏瑜?李얠쓣 ???놁뒿?덈떎."));
-            
+                    .orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
+
             message.setAiProcessedMessage(message.getOriginalMessage());
             message.setStatus(CoupleMessage.MessageStatus.READY);
             coupleMessageRepository.save(message);
 
-            // ?대갚 泥섎━ ?쒖뿉???뚮┝ 諛쒖넚
             try {
                 sendCoupleMessageNotification(message.getSender(), message.getReceiver(), message.getOriginalMessage());
             } catch (Exception e) {
-                log.warn("?대갚 泥섎━ ?뚮┝ 諛쒖넚 ?ㅽ뙣: {}", e.getMessage());
+                log.warn("폴백 처리 알림 발송 실패: {}", e.getMessage());
             }
 
-            log.info("硫붿떆吏 ?대갚 泥섎━ ?꾨즺: {}", messageId);
-            
+            log.info("메시지 폴백 처리 완료: {}", messageId);
         } catch (Exception e) {
-            log.error("硫붿떆吏 ?대갚 泥섎━ ?ㅽ뙣: {}", messageId, e);
+            log.error("메시지 폴백 처리 실패: {}", messageId, e);
         }
     }
-    
-    /**
-     * 二쇨컙 ?ъ슜 ?쒗븳 ?뺤씤
-     */
+
     private void checkUsageCooldown(User sender) {
         calculateNextAvailableAt(sender).ifPresent(nextAvailableAt -> {
             String formatted = nextAvailableAt.format(COOLDOWN_DISPLAY_FORMAT);
-            throw new IllegalStateException("留덉쓬 ?꾪븯湲곕뒗 3?쇱뿉 ??踰덈쭔 蹂대궪 ???덉뼱?? " + formatted + " ?댄썑???ㅼ떆 ?쒕룄??二쇱꽭??");
+            throw new IllegalStateException("마음 전하기는 3일에 한 번만 보낼 수 있어요. " + formatted + " 이후에 다시 시도해 주세요.");
         });
     }
+
+    private Optional<LocalDateTime> calculateNextAvailableAt(User sender) {
+        return coupleMessageRepository.findTopBySenderOrderByCreatedAtDesc(sender)
+                .map(CoupleMessage::getCreatedAt)
+                .map(createdAt -> createdAt.plus(MESSAGE_COOLDOWN))
+                .filter(nextAvailable -> nextAvailable.isAfter(LocalDateTime.now()));
+    }
+
 
     private Optional<LocalDateTime> calculateNextAvailableAt(User sender) {
         return coupleMessageRepository.findTopBySenderOrderByCreatedAtDesc(sender)
