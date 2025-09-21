@@ -232,15 +232,6 @@ public class CoupleMessageService {
                 .map(createdAt -> createdAt.plus(MESSAGE_COOLDOWN))
                 .filter(nextAvailable -> nextAvailable.isAfter(LocalDateTime.now()));
     }
-
-
-    private Optional<LocalDateTime> calculateNextAvailableAt(User sender) {
-        return coupleMessageRepository.findTopBySenderOrderByCreatedAtDesc(sender)
-                .map(CoupleMessage::getCreatedAt)
-                .map(createdAt -> createdAt.plus(MESSAGE_COOLDOWN))
-                .filter(nextAvailable -> nextAvailable.isAfter(LocalDateTime.now()));
-    }
-    }
     
     /**
      * ?대찓?쇰줈 ?ъ슜??議고쉶

@@ -399,7 +399,7 @@ public class AIAnalysisService {
 
             String response = choices.get(0).getMessage().getContent().trim();
 
-            if (response.startsWith("\"") && response.endsWith("\"") {
+            if (response.startsWith("\"") && response.endsWith("\"")) {
                 response = response.substring(1, response.length() - 1);
             }
 
