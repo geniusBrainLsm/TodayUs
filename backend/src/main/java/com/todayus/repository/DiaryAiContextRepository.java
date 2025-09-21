@@ -1,4 +1,4 @@
-﻿package com.todayus.repository;
+package com.todayus.repository;
 
 import com.todayus.entity.Couple;
 import com.todayus.entity.Diary;

@@ -1,4 +1,4 @@
-﻿package com.todayus.controller;
+package com.todayus.controller;
 
 import com.todayus.dto.AiChatDto;
 import com.todayus.security.CustomOAuth2User;

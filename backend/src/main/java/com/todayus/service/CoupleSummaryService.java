@@ -89,20 +89,31 @@ public class CoupleSummaryService {
      */
     private String getFallbackSummary(LocalDate date) {
         String[] fallbackSummaries = {
-                "서로를 향한 마음이
-일기 속에 따뜻하게
-담겨있는 소중한 시간 💕",
-                "함께 나눈 일상의 순간이
-더 큰 사랑으로 이어지고 있어요 ✨",
-                "서로를 위한 마음이
-매일 조금씩 쌓이며
-따뜻한 추억을 만들고 있어요 ☕️",
-                "두 사람이 걸어온 발걸음이
-오늘도 서로에게 힘이 되고 있어요 🌿",
-                "진심 어린 마음이
-일기 속에 고스란히 담겨 있어요
-서로를 향한 응원을 이어가요 🌈"
+                String.join("\n",
+                        "\uC11C\uB85C\uB97C \uD5A5\uD55C \uB9C8\uC74C\uC774",
+                        "\uC77C\uAE30 \uC18D\uC5D0 \uB530\uB77C\uD558\uAC8C",
+                        "\uB2F4\uACA8\uC788\uB294 \uC18C\uC911\uD55C \uC2DC\uAC04 \uD83D\uDC95"
+                ),
+                String.join("\n",
+                        "\uD568\uAED8 \uB098\uB204\uB294 \uC77C\uC0C1\uC758 \uC21C\uAC04\uC774",
+                        "\uB354 \uD070 \uC0AC\uB791\uC73C\uB85C \uC774\uC5B4\uC9C0\uACE0 \uC788\uC5B4\uC694 \u2728"
+                ),
+                String.join("\n",
+                        "\uC11C\uB85C\uB97C \uC704\uD55C \uB9C8\uC74C\uC774",
+                        "\uB9E4\uC77C \uC870\uAE08\uC529 \uC313\uC774\uBA70",
+                        "\uB530\uB77C\uD55C \uCD94\uC5B5\uC744 \uB9CC\uB4DC\uACE0 \uC788\uC5B4\uC694 \u2615\uFE0F"
+                ),
+                String.join("\n",
+                        "\uB450 \uC0AC\uB78C\uC774 \uAC78\uC5B4\uC628 \uBC1C\uAC00\uB77C\uC74C\uC774",
+                        "\uC624\uB298\uB3C4 \uC11C\uB85C\uC5D0\uAC8C \uD798\uC774 \uB418\uACE0 \uC788\uC5B4\uC694 \uD83C\uDF3F"
+                ),
+                String.join("\n",
+                        "\uC9C4\uC2EC \uC5B4\uB9B0 \uB9C8\uC74C\uC774",
+                        "\uC77C\uAE30 \uC18D\uC5D0 \uACE0\uC2A4\uB780\uD788 \uB2F4\uACA8 \uC788\uC5B4\uC694",
+                        "\uC11C\uB85C\uB97C \uD5A5\uD55C \uC751\uC6D0\uC744 \uC774\uC5B4\uAC00\uC694 \uD83C\uDF08"
+                )
         };
+
 
         // 날짜를 기준으로 메시지 선택 (같은 날에는 같은 메시지)
         int index = date.getDayOfYear() % fallbackSummaries.length;

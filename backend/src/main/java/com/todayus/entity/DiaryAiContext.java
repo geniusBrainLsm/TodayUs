@@ -1,4 +1,4 @@
-﻿package com.todayus.entity;
+package com.todayus.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

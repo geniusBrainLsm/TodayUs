@@ -1,4 +1,4 @@
-﻿package com.todayus.service;
+package com.todayus.service;
 
 import com.todayus.entity.DailyMessage;
 import com.todayus.repository.DailyMessageRepository;

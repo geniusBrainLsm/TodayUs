@@ -202,8 +202,7 @@ public class CoupleMessageService {
             // 실패한 경우에도 원본 메시지로 전달
             fallbackProcessMessage(messageId);
         }
-    }
-    
+
     /**
      * AI 처리 실패 시 원본 메시지로 처리
      */
@@ -228,11 +227,11 @@ public class CoupleMessageService {
         } catch (Exception e) {
             log.error("메시지 폴백 처리 실패: {}", messageId, e);
         }
-    }
-    
+
     /**
      * 주간 사용 제한 확인
-     */    private void checkUsageCooldown(User sender) {
+     */
+    private void checkUsageCooldown(User sender) {
         calculateNextAvailableAt(sender).ifPresent(nextAvailableAt -> {
             String formatted = nextAvailableAt.format(COOLDOWN_DISPLAY_FORMAT);
             throw new IllegalStateException("마음 전하기는 3일에 한 번만 보낼 수 있어요. " + formatted + " 이후에 다시 시도해 주세요.");
@@ -245,8 +244,7 @@ public class CoupleMessageService {
                 .map(createdAt -> createdAt.plus(MESSAGE_COOLDOWN))
                 .filter(nextAvailable -> nextAvailable.isAfter(LocalDateTime.now()));
     }
-    }
-    
+
     /**
      * 이메일로 사용자 조회
      */

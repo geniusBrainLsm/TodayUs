@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     id 'java'
     id 'org.springframework.boot' version '3.2.0'
     id 'io.spring.dependency-management' version '1.1.4'
@@ -61,19 +61,22 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// JAR 빌드 설정
+// JAR 鍮뚮뱶 ?ㅼ젙
 jar {
     enabled = false
     archiveClassifier = ''
 }
 
-// Fat JAR 설정
+// Fat JAR ?ㅼ젙
 tasks.named('bootJar') {
     archiveFileName = 'todayus-backend.jar'
     mainClass = 'com.todayus.TodayUsApplication'
 }
 
-// 빌드 최적화
-tasks.named('build') {
+// 鍮뚮뱶 理쒖쟻??tasks.named('build') {
     dependsOn 'bootJar'
+}
+// Ensure UTF-8 encoding for javac
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }
