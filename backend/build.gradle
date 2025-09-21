@@ -61,22 +61,26 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
-// JAR 鍮뚮뱶 ?ㅼ젙
+// Disable plain JAR because bootJar will be used
 jar {
     enabled = false
     archiveClassifier = ''
 }
 
-// Fat JAR ?ㅼ젙
+// Configure fat JAR output
 tasks.named('bootJar') {
     archiveFileName = 'todayus-backend.jar'
     mainClass = 'com.todayus.TodayUsApplication'
 }
 
-// 鍮뚮뱶 理쒖쟻??tasks.named('build') {
+// Ensure bootJar runs during build
+tasks.named('build') {
     dependsOn 'bootJar'
 }
+
 // Ensure UTF-8 encoding for javac
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
+
+
