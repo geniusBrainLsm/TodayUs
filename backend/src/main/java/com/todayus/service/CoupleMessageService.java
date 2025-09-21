@@ -1,4 +1,4 @@
-﻿package com.todayus.service;
+package com.todayus.service;
 
 import com.todayus.dto.CoupleMessageDto;
 import com.todayus.entity.Couple;
@@ -35,10 +35,7 @@ public class CoupleMessageService {
     private static final Duration MESSAGE_COOLDOWN = Duration.ofHours(72);
     private static final long MAX_MESSAGES_PER_WINDOW = 1;
     private static final DateTimeFormatter COOLDOWN_DISPLAY_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    
-    /**
-     * ?덈줈??????꾨떖?섍린 硫붿떆吏 ?앹꽦
-     */
+
     public CoupleMessageDto.Response createMessage(String userEmail, CoupleMessageDto.CreateRequest request) {
         User sender = getUserByEmail(userEmail);
         Couple couple = findCoupleByUser(sender);
