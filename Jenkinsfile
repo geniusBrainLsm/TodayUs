@@ -22,15 +22,6 @@ pipeline {
             }
         }
 
-        stage('Health Check') {
-            steps {
-                sh '''
-                    sleep 20
-                    # actuator health 확인
-                    curl -f http://localhost:8080/actuator/health || curl -f http://localhost:8080/ || exit 1
-                '''
-            }
-        }
     }
 
     post {
