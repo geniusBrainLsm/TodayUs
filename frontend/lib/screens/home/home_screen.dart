@@ -71,7 +71,7 @@ class _HomeScreenState extends State<HomeScreen>
     _loadData();
     _checkDiaryWritePermission();
     _checkForCoupleMessage();
-    _loadGptDailyMessage();
+    _loadRandomDailyMessage();
     _checkTodayDiary();
     _checkForUnreadCoupleMessage();
     _startPeriodicRefresh();
@@ -122,55 +122,40 @@ class _HomeScreenState extends State<HomeScreen>
     });
   }
 
-  /// GPT 일일 메시지 로딩 (매일 00시에 새로 생성됨)
-  Future<void> _loadGptDailyMessage() async {
+  /// 로컬에서 랜덤 일일 메시지 선택
+  void _loadRandomDailyMessage() {
     try {
-      print('🟡 GPT 일일 메시지 로딩 시작');
-      final message = await DailyMessageService.getTodaysDailyMessage();
-
-      if (mounted && message != null && message.isNotEmpty) {
-        setState(() {
-          _gptDailyMessage = message;
-        });
-        print('🟢 GPT 일일 메시지 로딩 성공: $message');
-      } else {
-        print('🔴 GPT 일일 메시지 로딩 실패 - 기본 메시지 사용');
-        // GPT 실패 시 기본 메시지 사용
-        final fallbackMessages = [
-          "새로운 하루, 새로운 추억을 만들어보세요! ✨",
-          "오늘도 사랑하는 사람과 함께하는 소중한 하루가 되길 바라요 💕",
-          "행복은 함께 나눌 때 더욱 커진다고 해요. 오늘도 행복하세요! 🌟",
-          "매일매일이 특별한 기념일이 될 수 있어요. 오늘은 어떤 날로 만들어볼까요? 🎈",
-          "작은 것에도 감사하며, 사랑을 나누는 하루가 되시길 바라요 🌸"
-        ];
-        final index = DateTime.now().day % fallbackMessages.length;
-        final fallbackMessage = fallbackMessages[index];
-
-        if (mounted) {
-          setState(() {
-            _gptDailyMessage = fallbackMessage;
-          });
-          print('🟢 기본 메시지 설정 완료: $fallbackMessage');
-        }
-      }
-    } catch (e) {
-      print('🔴 GPT 일일 메시지 로딩 오류: $e');
-      // 오류 시에도 기본 메시지 사용
-      final fallbackMessages = [
+      print('🟡 랜덤 일일 메시지 로딩 시작');
+      final predefinedMessages = [
         "새로운 하루, 새로운 추억을 만들어보세요! ✨",
-        "오늘도 사랑하는 사람과 함께하는 소중한 하루가 되길 바라요 💕",
-        "행복은 함께 나눌 때 더욱 커진다고 해요. 오늘도 행복하세요! 🌟",
-        "매일매일이 특별한 기념일이 될 수 있어요. 오늘은 어떤 날로 만들어볼까요? 🎈",
-        "작은 것에도 감사하며, 사랑을 나누는 하루가 되시길 바라요 🌸"
+        "가볍게 손을 잡고 오늘의 작은 순간을 웃으며 시작해요 💫",
+        "서로의 마음을 들여다보는 따뜻한 시간으로 하루를 채워보아요 ☕️",
+        "소중한 마음을 작은 메시지로 나눠 보는 건 어떨까요? 💌",
+        "함께 한다는 사실만으로도 오늘은 충분히 특별해요 🌈",
+        "오늘도 서로를 향한 따뜻한 마음으로 시작해보아요 💕",
+        "작은 관심과 배려가 큰 행복이 되는 하루가 되길 바라요 🌟",
+        "둘만의 특별한 순간들을 소중히 간직해보세요 💝",
+        "매일매일이 새로운 사랑의 시작이에요 🌸",
+        "함께 웃고 함께 나누는 오늘이 되시길 바라요 😊"
       ];
-      final index = DateTime.now().day % fallbackMessages.length;
-      final fallbackMessage = fallbackMessages[index];
+
+      // 날짜를 기반으로 메시지 선택 (같은 날에는 같은 메시지)
+      final index = DateTime.now().day % predefinedMessages.length;
+      final selectedMessage = predefinedMessages[index];
 
       if (mounted) {
         setState(() {
-          _gptDailyMessage = fallbackMessage;
+          _gptDailyMessage = selectedMessage;
         });
-        print('🟢 오류 시 기본 메시지 설정 완료: $fallbackMessage');
+        print('🟢 랜덤 일일 메시지 설정 완료: $selectedMessage');
+      }
+    } catch (e) {
+      print('🔴 랜덤 일일 메시지 설정 오류: $e');
+      // 오류 시 기본 메시지 사용
+      if (mounted) {
+        setState(() {
+          _gptDailyMessage = "새로운 하루, 새로운 추억을 만들어보세요! ✨";
+        });
       }
     }
   }
@@ -1148,7 +1133,7 @@ class _HomeScreenState extends State<HomeScreen>
         // D-day (단순 텍스트)
         if (_daysSince != null)
           Container(
-            margin: const EdgeInsets.only(right: 12),
+            margin: const EdgeInsets.only(right: 3),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: const Color(0xFF2563EB).withOpacity(0.1),
@@ -1171,21 +1156,21 @@ class _HomeScreenState extends State<HomeScreen>
   Widget _buildMainContent() {
     return Column(
       children: [
-        // 마스코트 로봇 + OO봇 메시지 합친 카드
-        _buildRobotWithMessageCard(),
+        // 마스코트 로봇 + OO봇 메시지 + 관계분석 합친 카드
+        _buildMergedCard(),
 
         const SizedBox(height: 16),
 
-        // 액션 카드들
-        _buildActionCards(),
+        // 일기 작성 & 대신 전해주기 카드들
+        _buildQuickActionButtons(),
 
         const SizedBox(height: 16),
       ],
     );
   }
 
-  // 로봇 + 메시지 합친 카드 (헤더 포함)
-  Widget _buildRobotWithMessageCard() {
+  // 로봇 + 메시지 + AI 분석 합친 카드
+  Widget _buildMergedCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
@@ -1203,60 +1188,67 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         children: [
           // 헤더 부분 (안녕하세요 + D-day)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Stack(
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '안녕하세요! 👋',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+              Padding(
+                padding: const EdgeInsets.only(right: 80.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '안녕하세요! 👋',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'OO봇의 오늘의 한마디',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[600],
+                    const SizedBox(height: 4),
+                    Text(
+                      'OO봇의 오늘의 한마디',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _getDailyMessage(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.blue[700],
-                      fontWeight: FontWeight.w500,
-                      height: 1.4,
+                    const SizedBox(height: 8),
+                    Text(
+                      _getDailyMessage(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w500,
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              // D-day (단순 텍스트)
-              if (_daysSince != null)
-                Container(
-                  margin: const EdgeInsets.only(right: 12),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2563EB).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    'D+$_daysSince',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF2563EB),
-                    ),
-                  ),
+                  ],
                 ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: (
+                  // D-day (단순 텍스트)
+                  _daysSince != null
+                      ? Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2563EB).withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            'D+$_daysSince',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        )
+                      : const SizedBox.shrink()
+                ),
+              ),
             ],
           ),
 
@@ -1339,6 +1331,51 @@ class _HomeScreenState extends State<HomeScreen>
                     ),
             ),
           ),
+          
+          const SizedBox(height: 24),
+
+          // AI 요약 (관계 분석)
+          if (_coupleSummary.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.auto_awesome,
+                        color: Colors.orange[400],
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'OO봇의 관계 분석',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _coupleSummary.replaceAll('\\n', '\n'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -1387,21 +1424,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // 액션 카드들
-  Widget _buildActionCards() {
-    return Column(
-      children: [
-        // OO봇 관계 분석 카드
-        if (_coupleSummary.isNotEmpty) _buildRelationshipAnalysisCard(),
-
-        const SizedBox(height: 16),
-
-        // 일기 작성 & 대신 전해주기 카드들
-        _buildQuickActionButtons(),
-      ],
-    );
-  }
-
   Widget _buildQuickActionButtons() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1439,58 +1461,6 @@ class _HomeScreenState extends State<HomeScreen>
       widget.onDiaryStateChanged?.call();
       _refreshCoupleSummary();
     }
-  }
-
-  // OO봇 관계 분석 카드 (기존 _buildSummaryCard를 수정)
-  Widget _buildRelationshipAnalysisCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.auto_awesome,
-                color: Colors.orange[400],
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'OO봇의 관계 분석',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.orange[700],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _coupleSummary.replaceAll('\\n', '\n'),
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[700],
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   // 하단 통계
