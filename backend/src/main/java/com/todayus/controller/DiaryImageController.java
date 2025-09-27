@@ -6,6 +6,7 @@ import com.todayus.security.CustomOAuth2User;
 import com.todayus.service.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,148 +25,229 @@ public class DiaryImageController {
     private final DiaryRepository diaryRepository;
 
     /**
-     * 일기 이미지 업로드
+     * ?쇨린 ?대?吏 ?낅줈??
      */
     @PostMapping("/{diaryId}/image")
     public ResponseEntity<Map<String, Object>> uploadDiaryImage(
+
             @PathVariable Long diaryId,
+
             @RequestParam("file") MultipartFile file,
+
             @AuthenticationPrincipal CustomOAuth2User principal) {
-        
+
+        Long userId = principal != null ? principal.getUserId() : null;
+
+        if (userId == null) {
+
+            Map<String, Object> response = new HashMap<>();
+
+            response.put("success", false);
+
+            response.put("message", "Authentication required.");
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
+        }
+
         try {
-            Long userId = principal.getUserId();
+
             log.info("Diary image upload request for diary: {}, user: {}", diaryId, userId);
 
-            // 일기 존재 확인 및 권한 체크
             Diary diary = diaryRepository.findById(diaryId)
-                    .orElseThrow(() -> new RuntimeException("일기를 찾을 수 없습니다."));
+
+                    .orElseThrow(() -> new RuntimeException("?�기�?찾을 ???�습?�다."));
 
             if (!diary.isOwnedBy(userId)) {
-                throw new RuntimeException("일기 수정 권한이 없습니다.");
+
+                throw new RuntimeException("?�기 ?�정 권한???�습?�다.");
+
             }
 
-            // 기존 이미지가 있으면 삭제
             if (diary.getImageUrl() != null && !diary.getImageUrl().isEmpty()) {
+
                 try {
+
                     s3Service.deleteDiaryImage(diary.getImageUrl());
+
                 } catch (Exception e) {
+
                     log.warn("Failed to delete existing diary image for diary {}: {}", diaryId, e.getMessage());
+
                 }
+
             }
 
-            // 새 이미지 업로드
             String imageUrl = s3Service.uploadDiaryImage(file, userId, diaryId);
 
-            // 데이터베이스 업데이트
             diary.setImageUrl(imageUrl);
+
             diaryRepository.save(diary);
 
             Map<String, Object> response = new HashMap<>();
+
             response.put("success", true);
-            response.put("message", "일기 이미지가 성공적으로 업로드되었습니다.");
+
+            response.put("message", "?�기 ?��?지가 ?�공?�으�??�로?�되?�습?�다.");
+
             response.put("imageUrl", imageUrl);
 
             log.info("Diary image uploaded successfully for diary {}: {}", diaryId, imageUrl);
+
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
+
             log.warn("Invalid file upload request for diary {}: {}", diaryId, e.getMessage());
+
             Map<String, Object> response = new HashMap<>();
+
             response.put("success", false);
+
             response.put("message", e.getMessage());
+
             return ResponseEntity.badRequest().body(response);
 
         } catch (Exception e) {
+
             log.error("Error uploading diary image for diary {}", diaryId, e);
+
             Map<String, Object> response = new HashMap<>();
+
             response.put("success", false);
-            response.put("message", "일기 이미지 업로드 중 오류가 발생했습니다.");
+
+            response.put("message", "?�기 ?��?지 ?�로??�??�류가 발생?�습?�다.");
+
             return ResponseEntity.internalServerError().body(response);
+
         }
+
     }
 
+
+
     /**
-     * 일기 이미지 삭제
+     * ?쇨린 ?대?吏 ??젣
      */
     @DeleteMapping("/{diaryId}/image")
     public ResponseEntity<Map<String, Object>> deleteDiaryImage(
             @PathVariable Long diaryId,
             @AuthenticationPrincipal CustomOAuth2User principal) {
-        
+        Long userId = principal != null ? principal.getUserId() : null;
+        if (userId == null) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", false);
+            response.put("message", "Authentication required.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
         try {
-            Long userId = principal.getUserId();
             log.info("Diary image delete request for diary: {}, user: {}", diaryId, userId);
-
-            // 일기 존재 확인 및 권한 체크
             Diary diary = diaryRepository.findById(diaryId)
-                    .orElseThrow(() -> new RuntimeException("일기를 찾을 수 없습니다."));
-
+                    .orElseThrow(() -> new RuntimeException("?�기�?찾을 ???�습?�다."));
             if (!diary.isOwnedBy(userId)) {
-                throw new RuntimeException("일기 수정 권한이 없습니다.");
+                throw new RuntimeException("?�기 ?�정 권한???�습?�다.");
             }
-
-            // 이미지가 있으면 삭제
             if (diary.getImageUrl() != null && !diary.getImageUrl().isEmpty()) {
                 s3Service.deleteDiaryImage(diary.getImageUrl());
-                
-                // 데이터베이스에서 URL 제거
                 diary.setImageUrl(null);
                 diaryRepository.save(diary);
             }
-
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
-            response.put("message", "일기 이미지가 삭제되었습니다.");
-
+            response.put("message", "?�기 ?��?지가 ??��?�었?�니??");
             log.info("Diary image deleted successfully for diary {}", diaryId);
             return ResponseEntity.ok(response);
-
         } catch (Exception e) {
             log.error("Error deleting diary image for diary {}", diaryId, e);
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
-            response.put("message", "일기 이미지 삭제 중 오류가 발생했습니다.");
+            response.put("message", "?�기 ?��?지 ??�� �??�류가 발생?�습?�다.");
             return ResponseEntity.internalServerError().body(response);
         }
     }
 
+
     /**
-     * 일반적인 이미지 업로드 (일기 ID 없이)
-     * 일기 작성 중 임시로 사용
+     * ?쇰컲?곸씤 ?대?吏 ?낅줈??(?쇨린 ID ?놁씠)
+     * ?쇨린 ?묒꽦 以??꾩떆濡??ъ슜
      */
     @PostMapping("/upload-image")
+
     public ResponseEntity<Map<String, Object>> uploadImage(
+
             @RequestParam("file") MultipartFile file,
+
             @AuthenticationPrincipal CustomOAuth2User principal) {
-        
+
+        Long userId = principal != null ? principal.getUserId() : null;
+
+        if (userId == null) {
+
+            Map<String, Object> response = new HashMap<>();
+
+            response.put("success", false);
+
+            response.put("message", "Authentication required.");
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+
+        }
+
         try {
-            Long userId = principal.getUserId();
+
             log.info("Temporary image upload request for user: {}", userId);
 
-            // 임시 일기 ID로 0 사용 (나중에 실제 일기 ID로 변경 가능)
+            // ?�시 ?�기 ID�?0 ?�용 (?�중???�제 ?�기 ID�?변�?가??
+
             String imageUrl = s3Service.uploadDiaryImage(file, userId, 0L);
 
             Map<String, Object> response = new HashMap<>();
+
             response.put("success", true);
-            response.put("message", "이미지가 성공적으로 업로드되었습니다.");
+
+            response.put("message", "?��?지가 ?�공?�으�??�로?�되?�습?�다.");
+
             response.put("imageUrl", imageUrl);
 
             log.info("Temporary image uploaded successfully for user {}: {}", userId, imageUrl);
+
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
-            log.warn("Invalid file upload request for user {}: {}", principal.getUserId(), e.getMessage());
+
+            log.warn("Invalid file upload request for user {}: {}", userId, e.getMessage());
+
             Map<String, Object> response = new HashMap<>();
+
             response.put("success", false);
+
             response.put("message", e.getMessage());
+
             return ResponseEntity.badRequest().body(response);
 
         } catch (Exception e) {
-            log.error("Error uploading temporary image for user {}", principal.getUserId(), e);
+
+            log.error("Error uploading temporary image for user {}", userId, e);
+
             Map<String, Object> response = new HashMap<>();
+
             response.put("success", false);
-            response.put("message", "이미지 업로드 중 오류가 발생했습니다.");
+
+            response.put("message", "?��?지 ?�로??�??�류가 발생?�습?�다.");
+
             return ResponseEntity.internalServerError().body(response);
+
         }
+
     }
+
+
+
+
+
+
+
+
 }
+
+

@@ -53,8 +53,8 @@ public class EnvironmentConfig {
 
         // AWS S3
         log.info("☁️  AWS S3 Configuration:");
-        String awsAccessKey = environment.getProperty("aws.access-key");
-        String awsSecretKey = environment.getProperty("aws.secret-key");
+        String awsAccessKey = environment.getProperty("aws.access.key");
+        String awsSecretKey = environment.getProperty("aws.secret.key");
         String awsRegion = environment.getProperty("aws.region");
         String awsBucket = environment.getProperty("aws.s3.bucket");
 

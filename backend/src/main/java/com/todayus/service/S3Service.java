@@ -110,9 +110,11 @@ public class S3Service {
                     .key(key)
                     .contentType(file.getContentType())
                     .contentLength(file.getSize())
+                    .acl(ObjectCannedACL.PUBLIC_READ)
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            applyPublicReadAcl(key);
 
             String imageUrl = getPublicUrl(key);
             log.info("Diary image uploaded successfully for user {} diary {}: {}", userId, diaryId, imageUrl);

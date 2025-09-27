@@ -17,6 +17,9 @@ import java.util.Optional;
 @Repository
 public interface DiaryRepository extends JpaRepository<Diary, Long> {
     
+    @Query("SELECT d FROM Diary d WHERE d.couple = :couple AND d.status = 'PUBLISHED' ORDER BY d.diaryDate ASC, d.createdAt ASC")
+    List<Diary> findByCoupleOrderByDiaryDateAsc(@Param("couple") Couple couple);
+
     // Find diaries by couple (both users can see each other's diaries)
     @Query("SELECT d FROM Diary d WHERE d.couple = :couple AND d.status = 'PUBLISHED' ORDER BY d.diaryDate DESC, d.createdAt DESC")
     Page<Diary> findByCoupleOrderByDiaryDateDescCreatedAtDesc(@Param("couple") Couple couple, Pageable pageable);

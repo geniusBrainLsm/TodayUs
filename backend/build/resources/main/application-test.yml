@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: password
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+  h2:
+    console:
+      enabled: true
+
+# JWT 설정
+jwt:
+  secret: test-secret-key-for-development-only
+  token-validity-in-seconds: 86400
+
+# 앱 설정
+app:
+  upload:
+    dir: uploads
+  oauth2:
+    authorized-redirect-uris:
+      - http://localhost:53153
+      - http://localhost:3000
+      - http://localhost:8080
+
+logging:
+  level:
+    com.todayus: DEBUG
+    ROOT: INFO

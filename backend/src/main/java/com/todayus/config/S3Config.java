@@ -11,17 +11,21 @@ import software.amazon.awssdk.services.s3.S3Client;
 @Configuration
 public class S3Config {
 
-    @Value("${aws.access.key}")
+    @Value("${aws.access.key:#{null}}")
     private String accessKey;
 
-    @Value("${aws.secret.key}")
+    @Value("${aws.secret.key:#{null}}")
     private String secretKey;
 
-    @Value("${aws.region}")
+    @Value("${aws.region:ap-northeast-2}")
     private String region;
 
     @Bean
     public S3Client s3Client() {
+        if (accessKey == null || secretKey == null) {
+            throw new IllegalStateException("AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.");
+        }
+
         AwsBasicCredentials awsCredentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         return S3Client.builder()

@@ -57,7 +57,6 @@ public class CoupleMessageService {
         CoupleMessage savedMessage = coupleMessageRepository.save(message);
         log.info("?덈줈??????꾨떖?섍린 硫붿떆吏 ?앹꽦: {} -> {}", sender.getNickname(), receiver.getNickname());
         
-        // 鍮꾨룞湲곕줈 AI 泥섎━ ?쒖옉
         processMessageWithAI(savedMessage.getId());
         
         return CoupleMessageDto.Response.from(savedMessage);

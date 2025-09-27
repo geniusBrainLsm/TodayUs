@@ -92,8 +92,10 @@ management:
 
 # 앱 설정
 app:
+  upload:
+    dir: ${UPLOAD_DIR:uploads}
   oauth2:
-    authorized-redirect-uris: 
+    authorized-redirect-uris:
       - http://localhost:53153  # Flutter 웹 기본 포트
       - http://localhost:3000
       - http://localhost:8080

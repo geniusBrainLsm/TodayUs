@@ -1,4 +1,4 @@
-package com.todayus.config;
+﻿package com.todayus.config;
 
 import com.todayus.security.CustomOAuth2UserService;
 import com.todayus.security.JwtAuthenticationFilter;
@@ -43,8 +43,9 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jsonAuthenticationEntryPoint())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll() // health, info 포함 전체 actuator 허용
+                        .requestMatchers("/actuator/**").permitAll() // health, info ?ы븿 ?꾩껜 actuator ?덉슜
                         .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -81,7 +82,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // 허용할 도메인 설정
+        // ?덉슜???꾨찓???ㅼ젙
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*", 
                 "http://127.0.0.1:*",
@@ -115,7 +116,7 @@ public class SecurityConfig {
         ));
         
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // 1시간 캐시
+        configuration.setMaxAge(3600L); // 1?쒓컙 罹먯떆
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
