@@ -132,6 +132,10 @@ public class S3Service {
     /**
      * 일기 이미지 삭제
      */
+    public String uploadTemporaryDiaryImage(MultipartFile file, Long userId) {
+        return uploadDiaryImage(file, userId, 0L);
+    }
+
     public void deleteDiaryImage(String imageUrl) {
         try {
             String key = extractKeyFromUrl(imageUrl);
