@@ -361,31 +361,47 @@ public class DiaryService {
     
     private void processAiAnalysisAsync(Long diaryId) {
         // Run AI analysis in a separate thread to avoid blocking the main request
-        new Thread(() -> processAiAnalysisSync(diaryId)).start();
+        new Thread(() -> {
+            try {
+                log.info("🤖 Starting AI analysis thread for diary: {}", diaryId);
+                processAiAnalysisSync(diaryId);
+                log.info("✅ AI analysis thread completed for diary: {}", diaryId);
+            } catch (Exception e) {
+                log.error("❌ AI analysis thread failed for diary {}: {}", diaryId, e.getMessage(), e);
+            }
+        }).start();
     }
     
     private void processAiAnalysisSync(Long diaryId) {
         try {
-            log.info("Starting AI analysis for diary: {}", diaryId);
-            
+            log.info("🔍 Starting AI analysis for diary: {}", diaryId);
+
             Diary diary = diaryRepository.findById(diaryId)
                     .orElseThrow(() -> new IllegalStateException("일기를 찾을 수 없습니다."));
-            
+
+            log.info("📖 Found diary: title='{}', content length={}, aiProcessed={}",
+                    diary.getTitle(), diary.getContent() != null ? diary.getContent().length() : 0, diary.getAiProcessed());
+
             if (diary.getAiProcessed()) {
-                log.info("Diary {} already processed by AI", diaryId);
+                log.info("⚠️ Diary {} already processed by AI", diaryId);
                 return;
             }
-            
+
+            log.info("🧠 Starting emotion analysis...");
             // 1. Analyze emotion
-            AIAnalysisService.EmotionAnalysisResult emotionResult = 
+            AIAnalysisService.EmotionAnalysisResult emotionResult =
                     aiAnalysisService.analyzeEmotion(diary.getTitle(), diary.getContent());
-            
+            log.info("😊 Emotion analysis result: emotion='{}', description='{}'",
+                    emotionResult.getEmotion(), emotionResult.getDescription());
+
+            log.info("💬 Generating AI comment...");
             // 2. Generate AI comment
             String aiComment = aiAnalysisService.generateAIComment(
-                    diary.getTitle(), 
-                    diary.getContent(), 
+                    diary.getTitle(),
+                    diary.getContent(),
                     emotionResult.getDescription()
             );
+            log.info("💭 AI comment generated: '{}'", aiComment);
             
             // 3. Update diary with AI analysis results
             diary.setAiEmotion(emotionResult.getEmotion());
