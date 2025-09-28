@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -359,17 +360,15 @@ public class DiaryService {
         processAiAnalysisSync(diaryId);
     }
     
-    private void processAiAnalysisAsync(Long diaryId) {
-        // Run AI analysis in a separate thread to avoid blocking the main request
-        new Thread(() -> {
-            try {
-                log.info("🤖 Starting AI analysis thread for diary: {}", diaryId);
-                processAiAnalysisSync(diaryId);
-                log.info("✅ AI analysis thread completed for diary: {}", diaryId);
-            } catch (Exception e) {
-                log.error("❌ AI analysis thread failed for diary {}: {}", diaryId, e.getMessage(), e);
-            }
-        }).start();
+    @Async("aiTaskExecutor")
+    public void processAiAnalysisAsync(Long diaryId) {
+        try {
+            log.info("🤖 Starting AI analysis async for diary: {}", diaryId);
+            processAiAnalysisSync(diaryId);
+            log.info("✅ AI analysis async completed for diary: {}", diaryId);
+        } catch (Exception e) {
+            log.error("❌ AI analysis async failed for diary {}: {}", diaryId, e.getMessage(), e);
+        }
     }
     
     private void processAiAnalysisSync(Long diaryId) {
