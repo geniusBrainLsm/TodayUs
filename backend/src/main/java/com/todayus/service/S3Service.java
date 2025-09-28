@@ -7,14 +7,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
 import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 import software.amazon.awssdk.services.s3.model.PutObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -27,6 +31,7 @@ import java.util.UUID;
 public class S3Service {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
 
     @Value("${aws.s3.bucket}")
     private String bucketName;
@@ -36,6 +41,8 @@ public class S3Service {
 
     @Value("${aws.s3.diary-image-path:diary-images/}")
     private String diaryImagePath;
+    @Value("${aws.s3.presign-duration-seconds:900}")
+    private long presignDurationSeconds;
 
     private static final List<String> ALLOWED_EXTENSIONS = Arrays.asList("jpg", "jpeg", "png", "gif", "webp");
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (일기 사진은 좀 더 크게)
@@ -152,6 +159,51 @@ public class S3Service {
             log.error("S3 error while deleting diary image {}: {}", imageUrl, e.getMessage(), e);
             throw new RuntimeException("S3 삭제 중 오류가 발생했습니다: " + e.getMessage());
         }
+    }
+
+    /**
+     * Generate a presigned URL so clients can access private diary images.
+     */
+    public String resolveDiaryImageUrl(String storedImageUrl) {
+        if (storedImageUrl == null || storedImageUrl.isBlank()) {
+            return storedImageUrl;
+        }
+
+        if (presignDurationSeconds <= 0) {
+            return storedImageUrl;
+        }
+
+        String key = extractKeyFromUrl(storedImageUrl);
+        if (key == null || key.isBlank()) {
+            return storedImageUrl;
+        }
+
+        if (key.startsWith(bucketName + "/")) {
+            key = key.substring(bucketName.length() + 1);
+        }
+
+        try {
+            return generatePresignedGetUrl(key);
+        } catch (S3Exception e) {
+            log.error("S3 error while generating presigned URL for {}: {}", key, e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error while generating presigned URL for {}: {}", key, e.getMessage(), e);
+        }
+        return storedImageUrl;
+    }
+
+    private String generatePresignedGetUrl(String key) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofSeconds(presignDurationSeconds))
+                .getObjectRequest(getObjectRequest)
+                .build();
+
+        return s3Presigner.presignGetObject(presignRequest).url().toString();
     }
 
     /**

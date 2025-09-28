@@ -4,7 +4,8 @@
       "Read(//c/Users/dlwns/IdeaProjects/TodayUs/frontend/**)",
       "Bash(rm:*)",
       "Bash(git rm:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

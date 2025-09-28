@@ -38,6 +38,7 @@ public class DiaryService {
     private final NotificationService notificationService;
     private final CoupleSummaryService coupleSummaryService;
     private final DiaryContextService diaryContextService;
+    private final S3Service s3Service;
     
     public DiaryDto.Response createDiary(String userEmail, DiaryDto.CreateRequest request) {
         User user = findUserByEmail(userEmail);
@@ -76,7 +77,7 @@ public class DiaryService {
 
         log.info("Diary created: {} by user: {}", diary.getId(), userEmail);
 
-        return DiaryDto.Response.from(diary, user);
+        return toDiaryResponse(diary, user);
     }
     
     @Transactional(readOnly = true)
@@ -90,7 +91,7 @@ public class DiaryService {
         return diaries.map(diary -> {
             long commentCount = commentRepository.countByDiary(diary);
             User author = diary.getUser();
-            return DiaryDto.ListResponse.from(diary, author, commentCount);
+            return toDiaryListResponse(diary, author, commentCount);
         });
     }
     
@@ -109,7 +110,7 @@ public class DiaryService {
                 .collect(Collectors.toList());
         
         User author = diary.getUser();
-        return DiaryDto.Response.fromWithComments(diary, author, commentResponses);
+        return toDiaryResponseWithComments(diary, author, commentResponses);
     }
     
     public DiaryDto.Response updateDiary(String userEmail, Long diaryId, DiaryDto.UpdateRequest request) {
@@ -134,7 +135,7 @@ public class DiaryService {
         
         log.info("Diary updated: {} by user: {}", diary.getId(), userEmail);
         
-        return DiaryDto.Response.from(diary, user);
+        return toDiaryResponse(diary, user);
     }
     
     public void deleteDiary(String userEmail, Long diaryId) {
@@ -230,7 +231,7 @@ public class DiaryService {
         List<Diary> recentDiaries = diaryRepository.findRecentByCoupleOrderByCreatedAtDesc(couple, pageable);
         
         return recentDiaries.stream()
-                .map(diary -> DiaryDto.Response.from(diary, diary.getUser()))
+                .map(diary -> toDiaryResponse(diary, diary.getUser()))
                 .collect(Collectors.toList());
     }
 
@@ -440,6 +441,24 @@ public class DiaryService {
             log.error("Error sending diary creation notification for diary {} by user {}: {}",
                     diary.getId(), author.getEmail(), e.getMessage());
         }
+    }
+
+    private DiaryDto.Response toDiaryResponse(Diary diary, User author) {
+        DiaryDto.Response response = DiaryDto.Response.from(diary, author);
+        response.setImageUrl(s3Service.resolveDiaryImageUrl(diary.getImageUrl()));
+        return response;
+    }
+
+    private DiaryDto.Response toDiaryResponseWithComments(Diary diary, User author, List<DiaryDto.CommentResponse> comments) {
+        DiaryDto.Response response = DiaryDto.Response.fromWithComments(diary, author, comments);
+        response.setImageUrl(s3Service.resolveDiaryImageUrl(diary.getImageUrl()));
+        return response;
+    }
+
+    private DiaryDto.ListResponse toDiaryListResponse(Diary diary, User author, long commentCount) {
+        DiaryDto.ListResponse response = DiaryDto.ListResponse.from(diary, author, commentCount);
+        response.setImageUrl(s3Service.resolveDiaryImageUrl(diary.getImageUrl()));
+        return response;
     }
 
     private User findUserByEmail(String email) {
