@@ -11,7 +11,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    cd /workspace
+                    cd /home/ubuntu/TodayUs
                     chmod +x scripts/deploy.sh
                     ./scripts/deploy.sh
                 '''
