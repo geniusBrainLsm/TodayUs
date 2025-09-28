@@ -66,6 +66,7 @@ aws:
     bucket: ${AWS_S3_BUCKET:todayus}
     profile-image-path: ${AWS_S3_PROFILE_PATH:profile-images/}
     diary-image-path: ${AWS_S3_DIARY_PATH:diary-images/}
+    presign-duration-seconds: ${AWS_S3_PRESIGN_DURATION_SECONDS:900}
 
 logging:
   level:
