@@ -14,7 +14,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +36,7 @@ public class DiaryService {
     private final CoupleRepository coupleRepository;
     private final AIAnalysisService aiAnalysisService;
     private final NotificationService notificationService;
+
     private final CoupleSummaryService coupleSummaryService;
     private final DiaryContextService diaryContextService;
     private final S3Service s3Service;
@@ -65,9 +65,9 @@ public class DiaryService {
         
         diary = diaryRepository.save(diary);
 
-        // Trigger AI processing asynchronously
+        // Trigger AI processing synchronously
         Long diaryId = diary.getId();
-        processAiAnalysisAsync(diaryId);
+        processAiAnalysisSync(diaryId);
 
         // Send notification to partner
         try {
@@ -131,8 +131,8 @@ public class DiaryService {
         
         diary = diaryRepository.save(diary);
         
-        // Trigger AI processing asynchronously for updated content
-        processAiAnalysisAsync(diary.getId());
+        // Trigger AI processing synchronously for updated content
+        processAiAnalysisSync(diary.getId());
         
         log.info("Diary updated: {} by user: {}", diary.getId(), userEmail);
         
@@ -360,16 +360,6 @@ public class DiaryService {
         processAiAnalysisSync(diaryId);
     }
     
-    @Async("aiTaskExecutor")
-    public void processAiAnalysisAsync(Long diaryId) {
-        try {
-            log.info("🤖 Starting AI analysis async for diary: {}", diaryId);
-            processAiAnalysisSync(diaryId);
-            log.info("✅ AI analysis async completed for diary: {}", diaryId);
-        } catch (Exception e) {
-            log.error("❌ AI analysis async failed for diary {}: {}", diaryId, e.getMessage(), e);
-        }
-    }
     
     private void processAiAnalysisSync(Long diaryId) {
         try {
