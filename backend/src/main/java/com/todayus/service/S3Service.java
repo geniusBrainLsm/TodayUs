@@ -9,8 +9,6 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetUrlRequest;
-import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
-import software.amazon.awssdk.services.s3.model.PutObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
@@ -55,11 +53,9 @@ public class S3Service {
                     .key(key)
                     .contentType(file.getContentType())
                     .contentLength(file.getSize())
-                    .acl(ObjectCannedACL.PUBLIC_READ)
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-            applyPublicReadAcl(key);
 
             String imageUrl = getPublicUrl(key);
             log.info("Profile image uploaded successfully for user {}: {}", userId, imageUrl);
@@ -110,11 +106,9 @@ public class S3Service {
                     .key(key)
                     .contentType(file.getContentType())
                     .contentLength(file.getSize())
-                    .acl(ObjectCannedACL.PUBLIC_READ)
                     .build();
 
             s3Client.putObject(putObjectRequest, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
-            applyPublicReadAcl(key);
 
             String imageUrl = getPublicUrl(key);
             log.info("Diary image uploaded successfully for user {} diary {}: {}", userId, diaryId, imageUrl);
@@ -222,21 +216,6 @@ public class S3Service {
         return filename.substring(lastDotIndex + 1);
     }
 
-    /**
-     * S3 객체의 공개 URL 생성
-     */
-    private void applyPublicReadAcl(String key) {
-        try {
-            PutObjectAclRequest aclRequest = PutObjectAclRequest.builder()
-                    .bucket(bucketName)
-                    .key(key)
-                    .acl(ObjectCannedACL.PUBLIC_READ)
-                    .build();
-            s3Client.putObjectAcl(aclRequest);
-        } catch (S3Exception e) {
-            log.warn("Failed to set public-read ACL for {}: {}", key, e.getMessage());
-        }
-    }
 
     private String getPublicUrl(String key) {
         GetUrlRequest getUrlRequest = GetUrlRequest.builder()
