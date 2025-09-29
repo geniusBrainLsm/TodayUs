@@ -31,7 +31,7 @@ public class DiaryComment {
     private Diary diary;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+    @JoinColumn(name = "user_id", nullable = true, foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
     private User user;
     
     @Column(nullable = false, columnDefinition = "TEXT")
@@ -58,11 +58,11 @@ public class DiaryComment {
     }
     
     public boolean isOwnedBy(User user) {
-        return this.user.equals(user);
+        return this.user != null && this.user.equals(user);
     }
-    
+
     public boolean isOwnedBy(Long userId) {
-        return this.user.getId().equals(userId);
+        return this.user != null && this.user.getId().equals(userId);
     }
     
     public boolean isAiComment() {
