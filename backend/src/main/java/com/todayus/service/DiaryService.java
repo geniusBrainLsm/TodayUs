@@ -459,8 +459,11 @@ public class DiaryService {
     }
 
     private DiaryDto.Response toDiaryResponse(Diary diary, User author) {
+        log.debug("📄 Creating detail response for diary {}: originalImageUrl={}", diary.getId(), diary.getImageUrl());
         DiaryDto.Response response = DiaryDto.Response.from(diary, author);
-        response.setImageUrl(s3Service.resolveDiaryImageUrl(diary.getImageUrl()));
+        String resolvedImageUrl = s3Service.resolveDiaryImageUrl(diary.getImageUrl());
+        log.debug("📄 Resolved image URL for diary {}: {} -> {}", diary.getId(), diary.getImageUrl(), resolvedImageUrl);
+        response.setImageUrl(resolvedImageUrl);
         return response;
     }
 
@@ -471,8 +474,11 @@ public class DiaryService {
     }
 
     private DiaryDto.ListResponse toDiaryListResponse(Diary diary, User author, long commentCount) {
+        log.debug("📋 Creating list response for diary {}: originalImageUrl={}", diary.getId(), diary.getImageUrl());
         DiaryDto.ListResponse response = DiaryDto.ListResponse.from(diary, author, commentCount);
-        response.setImageUrl(s3Service.resolveDiaryImageUrl(diary.getImageUrl()));
+        String resolvedImageUrl = s3Service.resolveDiaryImageUrl(diary.getImageUrl());
+        log.debug("📋 Resolved image URL for diary {}: {} -> {}", diary.getId(), diary.getImageUrl(), resolvedImageUrl);
+        response.setImageUrl(resolvedImageUrl);
         return response;
     }
 
