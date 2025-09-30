@@ -35,11 +35,11 @@ public class AiChatService {
     private static final DateTimeFormatter DATE_FORMATTER =
             DateTimeFormatter.ofPattern("yyyy년 M월 d일", Locale.KOREAN);
     private static final int MAX_CONTEXT_ENTRIES = 80;
-    private static final int MAX_MONTH_OVERVIEW = 6;
-    private static final int SUMMARY_PER_MONTH = 2;
+    private static final int MAX_MONTH_OVERVIEW = 3;
+    private static final int SUMMARY_PER_MONTH = 1;
     private static final int MAX_RELEVANT_CONTEXT = 5;
     private static final int MAX_RECENT_HIGHLIGHTS = 2;
-    private static final int MAX_CONTEXT_CHAR = 2800;
+    private static final int MAX_CONTEXT_CHAR = 1800;
 
     private final UserRepository userRepository;
     private final CoupleRepository coupleRepository;
@@ -282,19 +282,27 @@ public class AiChatService {
     private String buildUserPrompt(String contextSection, String question) {
         StringBuilder builder = new StringBuilder();
         builder.append(contextSection);
-        builder.append("[사용자 질문]\n").append(question).append("\n\n");
-        builder.append("위 정보에 근거해 답변하고, 확인되지 않은 부분은 추측하지 말고 솔직하게 모른다고 말해 주세요.\n");
-        builder.append("상대의 마음을 공감하고 두 사람이 함께 실천할 수 있는 제안을 2~3가지 정도 제시해 주세요.");
+        builder.append("[질문]
+").append(question).append("
+
+");
+        builder.append("위 맥락을 참고해 아래 지침을 꼭 지켜 답해주세요.
+");
+        builder.append("• 핵심 감정을 1~2문장으로 부드럽게 정리합니다.
+");
+        builder.append("• 필요하면 실천 팁을 2개 이하 bullet으로, 각 문장은 15자 이내로 제안합니다.
+");
+        builder.append("• 과한 사과나 반복은 피하고, 자연스러운 존댓말을 유지합니다.");
         return builder.toString();
     }
 
     private String buildSystemPrompt() {
         return """
-                당신은 커플 일기 AI 상담사입니다.
-                - 제공된 일기 요약과 발췌로만 답변하세요.
-                - 모르는 내용은 추측하지 말고 솔직하게 모른다고 말하세요.
-                - 상대의 감정을 공감하고 관계를 응원하는 따뜻한 톤을 유지하세요.
-                - 필요하다면 구체적인 실천 아이디어를 간단한 목록 형태로 제시하세요.
+                당신은 연인 사이의 일기를 이해하고 정서적으로 공감해 주는 AI 상담사입니다.
+                - 답변은 3문장 이내로 유지하고, 꼭 필요할 때만 bullet을 사용하세요.
+                - 질문의 요지를 먼저 인정하고, 이어서 따뜻한 조언이나 행동 제안을 간결하게 전하세요.
+                - 맥락에 없는 사실은 만들지 말고, 모르면 솔직하게 말한 뒤 함께 시도할 한 가지 행동을 제안하세요.
+                - 항상 존댓말을 유지하고, 과장된 표현이나 형식적인 문구는 피하세요.
                 """;
     }
 

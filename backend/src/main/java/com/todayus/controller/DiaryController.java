@@ -10,6 +10,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.validation.Valid;
 import java.time.LocalDate;
@@ -50,7 +51,8 @@ public class DiaryController {
         try {
             DiaryDto.Response response = diaryService.createDiary(user.getEmail(), request);
             return ResponseEntity.ok(response);
-            
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (IllegalStateException e) {
             log.warn("Failed to create diary for user {}: {}", user.getEmail(), e.getMessage());
             return ResponseEntity.badRequest().build();

@@ -8,7 +8,8 @@
       "Bash(curl:*)",
       "Bash(ssh:*)",
       "Bash(git add:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Read(//c/Users/dlwns/IdeaProjects/TodayUs/**)"
     ],
     "deny": [],
     "ask": []

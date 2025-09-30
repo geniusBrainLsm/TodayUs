@@ -16,6 +16,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.HashMap;
@@ -48,7 +50,7 @@ public class DiaryService {
         // Check if user already has a diary for this date
         Optional<Diary> existingDiary = diaryRepository.findByUserAndDiaryDate(user, request.getDiaryDate());
         if (existingDiary.isPresent()) {
-            throw new IllegalStateException("이미 해당 날짜에 작성된 일기가 있습니다.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "오늘 일기는 이미 작성되었습니다.");
         }
         
         Diary diary = Diary.builder()
