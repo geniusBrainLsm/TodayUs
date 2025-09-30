@@ -1,4 +1,4 @@
-﻿package com.todayus.config;
+package com.todayus.config;
 
 import com.todayus.entity.AiRobot;
 import com.todayus.entity.User;

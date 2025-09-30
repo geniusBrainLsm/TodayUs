@@ -1,4 +1,4 @@
-﻿package com.todayus.dto;
+package com.todayus.dto;
 
 import lombok.Builder;
 import lombok.Getter;

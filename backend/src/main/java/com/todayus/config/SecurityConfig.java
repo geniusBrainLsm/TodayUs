@@ -1,4 +1,4 @@
-﻿package com.todayus.config;
+package com.todayus.config;
 
 import com.todayus.security.CustomOAuth2UserService;
 import com.todayus.security.JwtAuthenticationFilter;
