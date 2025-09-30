@@ -36,7 +36,7 @@ public class DiaryContextService {
             context.setCouple(diary.getCouple());
             context.setDiaryDate(diary.getDiaryDate());
             context.setTitle(diary.getTitle());
-            context.setMoodEmoji(diary.getMoodEmoji());
+
             context.setSummary(summary);
 
             diaryAiContextRepository.save(context);

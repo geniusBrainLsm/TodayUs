@@ -44,8 +44,7 @@ public class Diary {
     @Column(name = "diary_date", nullable = false)
     private LocalDate diaryDate;
     
-    @Column(name = "mood_emoji")
-    private String moodEmoji;
+
     
     @Column(name = "ai_emotion")
     private String aiEmotion;
@@ -75,16 +74,14 @@ public class Diary {
         DRAFT, PUBLISHED, ARCHIVED
     }
     
-    public void updateContent(String title, String content, String moodEmoji) {
+    public void updateContent(String title, String content) {
         this.title = title;
         this.content = content;
-        this.moodEmoji = moodEmoji;
     }
     
-    public void updateContentWithImage(String title, String content, String moodEmoji, String imageUrl) {
+    public void updateContentWithImage(String title, String content, String imageUrl) {
         this.title = title;
         this.content = content;
-        this.moodEmoji = moodEmoji;
         this.imageUrl = imageUrl;
     }
     

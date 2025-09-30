@@ -199,13 +199,17 @@ public class AIAnalysisService {
 
             // 이번 주 일기들의 감정과 내용을 분석할 텍스트로 준비
             String diariesText = weeklyDiaries.stream()
-                    .map(diary -> String.format("[%s] %s (%s): %s", 
+                    .map(diary -> {
+                        String emotion = diary.getAiEmotion();
+                        String emotionPart = (emotion != null && !emotion.isEmpty()) ? " (" + emotion + ")" : "";
+                        return String.format("[%s] %s%s: %s", 
                             diary.getDiaryDate(),
                             diary.getUser().getNickname(),
-                            diary.getMoodEmoji() != null ? diary.getMoodEmoji() : "😊",
+                            emotionPart,
                             diary.getContent().length() > 80 
                                 ? diary.getContent().substring(0, 80) + "..." 
-                                : diary.getContent()))
+                                : diary.getContent());
+                    })
                     .collect(Collectors.joining("\n"));
 
             String prompt = createWeeklyEmotionSummaryPrompt(diariesText);

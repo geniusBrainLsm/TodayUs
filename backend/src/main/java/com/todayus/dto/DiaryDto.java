@@ -30,7 +30,7 @@ public class DiaryDto {
         @NotNull(message = "일기 날짜는 필수입니다.")
         private LocalDate diaryDate;
         
-        private String moodEmoji;
+        private String aiEmotion;
         
         private String imageUrl;
     }
@@ -47,7 +47,7 @@ public class DiaryDto {
         @NotBlank(message = "내용은 필수입니다.")
         private String content;
         
-        private String moodEmoji;
+        private String aiEmotion;
         
         private String imageUrl;
     }
@@ -62,7 +62,6 @@ public class DiaryDto {
         private String title;
         private String content;
         private LocalDate diaryDate;
-        private String moodEmoji;
         private String imageUrl;
         private String aiEmotion;
         private String aiComment;
@@ -85,7 +84,6 @@ public class DiaryDto {
                     .title(diary.getTitle())
                     .content(diary.getContent())
                     .diaryDate(diary.getDiaryDate())
-                    .moodEmoji(diary.getMoodEmoji())
                     .imageUrl(diary.getImageUrl())
                     .aiEmotion(diary.getAiEmotion())
                     .aiComment(diary.getAiComment())
@@ -114,7 +112,6 @@ public class DiaryDto {
         private Long id;
         private String title;
         private LocalDate diaryDate;
-        private String moodEmoji;
         private String imageUrl;
         private String aiEmotion;
         private boolean aiProcessed;
@@ -132,7 +129,7 @@ public class DiaryDto {
                     .id(diary.getId())
                     .title(diary.getTitle())
                     .diaryDate(diary.getDiaryDate())
-                    .moodEmoji(diary.getMoodEmoji())
+
                     .imageUrl(diary.getImageUrl())
                     .aiEmotion(diary.getAiEmotion())
                     .aiProcessed(diary.getAiProcessed())

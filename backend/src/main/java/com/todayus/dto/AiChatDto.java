@@ -40,7 +40,7 @@ public class AiChatDto {
         private final Long diaryId;
         private final LocalDate diaryDate;
         private final String title;
-        private final String moodEmoji;
+        private final String aiEmotion;
         private final String summary;
     }
 }

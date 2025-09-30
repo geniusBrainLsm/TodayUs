@@ -33,8 +33,8 @@ public class DiaryController {
 
         log.info("=== Diary Creation Request ===");
         log.info("User: {}", user != null ? user.getEmail() : "null");
-        log.info("Request: title={}, date={}, mood={}, hasImage={}",
-                request.getTitle(), request.getDiaryDate(), request.getMoodEmoji(),
+        log.info("Request: title={}, date={}, hasImage={}",
+                request.getTitle(), request.getDiaryDate(),
                 request.getImageUrl() != null);
 
         // 인증된 사용자 확인
@@ -102,28 +102,6 @@ public class DiaryController {
             
         } catch (Exception e) {
             log.error("Error getting diary {} for user {}: {}", diaryId, user.getEmail(), e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
-    
-    @PutMapping("/{diaryId}")
-    public ResponseEntity<DiaryDto.Response> updateDiary(
-            @AuthenticationPrincipal CustomOAuth2User user,
-            @PathVariable Long diaryId,
-            @Valid @RequestBody DiaryDto.UpdateRequest request) {
-        
-        log.info("Updating diary: {} for user: {}", diaryId, user.getEmail());
-        
-        try {
-            DiaryDto.Response response = diaryService.updateDiary(user.getEmail(), diaryId, request);
-            return ResponseEntity.ok(response);
-            
-        } catch (IllegalStateException e) {
-            log.warn("Failed to update diary {} for user {}: {}", diaryId, user.getEmail(), e.getMessage());
-            return ResponseEntity.badRequest().build();
-            
-        } catch (Exception e) {
-            log.error("Error updating diary {} for user {}: {}", diaryId, user.getEmail(), e.getMessage(), e);
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -248,22 +226,7 @@ public class DiaryController {
             return ResponseEntity.internalServerError().build();
         }
     }
-    
-    @GetMapping("/weekly-emotion-summary")
-    public ResponseEntity<String> getWeeklyEmotionSummary(
-            @AuthenticationPrincipal CustomOAuth2User user) {
-        
-        log.info("Getting weekly emotion summary for user: {}", user.getEmail());
-        
-        try {
-            String summary = diaryService.generateWeeklyEmotionSummary(user.getEmail());
-            return ResponseEntity.ok(summary);
-            
-        } catch (Exception e) {
-            log.error("Error getting weekly emotion summary for user {}: {}", user.getEmail(), e.getMessage(), e);
-            return ResponseEntity.internalServerError().build();
-        }
-    }
+
     
     @GetMapping("/couple-summary")
     public ResponseEntity<Map<String, Object>> getCoupleSummary(

@@ -1,4 +1,4 @@
-package com.todayus.config;
+﻿package com.todayus.config;
 
 import com.todayus.security.CustomOAuth2UserService;
 import com.todayus.security.JwtAuthenticationFilter;
@@ -43,8 +43,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jsonAuthenticationEntryPoint())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll() // health, info ?ы븿 ?꾩껜 actuator ?덉슜
-                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message").permitAll()
+                        .requestMatchers("/actuator/**").permitAll() // health, info ??釉??袁⑷퍥 actuator ??됱뒠
+                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message", "/api/admin/login").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -81,7 +81,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // ?덉슜???꾨찓???ㅼ젙
+        // ??됱뒠???袁⑥컭????쇱젟
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*", 
                 "http://127.0.0.1:*",
@@ -115,7 +115,7 @@ public class SecurityConfig {
         ));
         
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // 1?쒓컙 罹먯떆
+        configuration.setMaxAge(3600L); // 1??볦퍢 筌?Ŋ??
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

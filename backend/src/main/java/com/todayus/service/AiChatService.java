@@ -106,7 +106,7 @@ public class AiChatService {
                         .diaryId(context.getDiary().getId())
                         .diaryDate(context.getDiaryDate())
                         .title(context.getTitle())
-                        .moodEmoji(context.getMoodEmoji())
+                        .aiEmotion(context.getAiEmotion())
                         .summary(context.getSummary())
                         .build())
                 .collect(Collectors.toList());
@@ -191,8 +191,8 @@ public class AiChatService {
                     .append(context.getDiaryDate().format(DATE_FORMATTER))
                     .append(" | 제목: ")
                     .append(context.getTitle());
-            if (context.getMoodEmoji() != null && !context.getMoodEmoji().isBlank()) {
-                builder.append(" | 감정: ").append(context.getMoodEmoji());
+            if (context.getAiEmotion() != null && !context.getAiEmotion().isBlank()) {
+                builder.append(" | 감정: ").append(context.getAiEmotion());
             }
             builder.append("\n  요약: ")
                     .append(truncate(context.getSummary(), 160))
@@ -212,8 +212,8 @@ public class AiChatService {
                     .append(context.getDiaryDate().format(DATE_FORMATTER))
                     .append(" | 제목: ")
                     .append(context.getTitle());
-            if (context.getMoodEmoji() != null && !context.getMoodEmoji().isBlank()) {
-                builder.append(" | 감정: ").append(context.getMoodEmoji());
+            if (context.getAiEmotion() != null && !context.getAiEmotion().isBlank()) {
+                builder.append(" | 감정: ").append(context.getAiEmotion());
             }
             builder.append("\n  요약: ")
                     .append(truncate(context.getSummary(), 140))
@@ -281,18 +281,18 @@ public class AiChatService {
 
     private String buildUserPrompt(String contextSection, String question) {
         StringBuilder builder = new StringBuilder();
-        builder.append(contextSection);
-        builder.append("[질문]
-").append(question).append("
 
-");
-        builder.append("위 맥락을 참고해 아래 지침을 꼭 지켜 답해주세요.
-");
-        builder.append("• 핵심 감정을 1~2문장으로 부드럽게 정리합니다.
-");
-        builder.append("• 필요하면 실천 팁을 2개 이하 bullet으로, 각 문장은 15자 이내로 제안합니다.
-");
-        builder.append("• 과한 사과나 반복은 피하고, 자연스러운 존댓말을 유지합니다.");
+        builder.append(contextSection).append("\n\n");
+
+        builder.append("[질문]\n")
+                .append(question)
+                .append("\n\n");
+
+        builder.append("위 맥락을 참고해 아래 지침을 꼭 지켜 답해주세요.\n");
+        builder.append("• 핵심 감정을 1~2문장으로 부드럽게 정리합니다.\n");
+        builder.append("• 필요하면 실천 팁을 2개 이하 bullet으로, 각 문장은 15자 이내로 제안합니다.\n");
+        builder.append("• 과한 사과나 반복은 피하고, 자연스러운 존댓말을 유지합니다.\n");
+
         return builder.toString();
     }
 

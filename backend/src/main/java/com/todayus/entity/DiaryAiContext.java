@@ -41,8 +41,8 @@ public class DiaryAiContext {
     @Column(nullable = false)
     private String title;
 
-    @Column(name = "mood_emoji")
-    private String moodEmoji;
+    @Column(name = "ai emotion")
+    private String aiEmotion;
 
     @Column(name = "summary", nullable = false, columnDefinition = "TEXT")
     private String summary;

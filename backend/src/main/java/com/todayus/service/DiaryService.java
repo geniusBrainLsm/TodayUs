@@ -59,7 +59,7 @@ public class DiaryService {
                 .title(request.getTitle())
                 .content(request.getContent())
                 .diaryDate(request.getDiaryDate())
-                .moodEmoji(request.getMoodEmoji())
+
                 .imageUrl(request.getImageUrl())
                 .status(Diary.DiaryStatus.PUBLISHED)
                 .aiProcessed(false)
@@ -115,32 +115,8 @@ public class DiaryService {
         User author = diary.getUser();
         return toDiaryResponseWithComments(diary, author, commentResponses);
     }
-    
-    public DiaryDto.Response updateDiary(String userEmail, Long diaryId, DiaryDto.UpdateRequest request) {
-        User user = findUserByEmail(userEmail);
-        Diary diary = findDiaryById(diaryId);
-        
-        if (!diary.isOwnedBy(user.getId())) {
-            throw new IllegalStateException("일기를 수정할 권한이 없습니다.");
-        }
-        
-        if (request.getImageUrl() != null) {
-            diary.updateContentWithImage(request.getTitle(), request.getContent(), request.getMoodEmoji(), request.getImageUrl());
-        } else {
-            diary.updateContent(request.getTitle(), request.getContent(), request.getMoodEmoji());
-        }
-        diary.setAiProcessed(false); // Reset AI processing flag when content changes
-        
-        diary = diaryRepository.save(diary);
-        
-        // Trigger AI processing synchronously for updated content
-        processAiAnalysisSync(diary.getId());
-        
-        log.info("Diary updated: {} by user: {}", diary.getId(), userEmail);
-        
-        return toDiaryResponse(diary, user);
-    }
-    
+
+
     public void deleteDiary(String userEmail, Long diaryId) {
         User user = findUserByEmail(userEmail);
         Diary diary = findDiaryById(diaryId);

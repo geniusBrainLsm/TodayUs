@@ -1,4 +1,4 @@
-package com.todayus.entity;
+﻿package com.todayus.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -51,6 +51,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer oilBalance = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_robot_id")
+    private AiRobot activeRobot;
+
     
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -86,5 +94,27 @@ public class User {
     
     public String getProfileImageUrl() {
         return this.profileImageUrl;
+    }
+    public void addOil(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        this.oilBalance = Math.max(0, (this.oilBalance == null ? 0 : this.oilBalance) + amount);
+    }
+
+    public void spendOil(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        int current = this.oilBalance == null ? 0 : this.oilBalance;
+        this.oilBalance = Math.max(0, current - amount);
+    }
+
+    public boolean hasEnoughOil(int amount) {
+        return (this.oilBalance == null ? 0 : this.oilBalance) >= amount;
+    }
+
+    public void activateRobot(AiRobot robot) {
+        this.activeRobot = robot;
     }
 }
