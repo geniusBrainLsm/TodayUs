@@ -146,6 +146,24 @@ class ApiEndpoints {
   static String storeActivate(int robotId) => '$baseUrl/api/store/activate/$robotId';
 
   // ================================================================
+  // Board 관련 엔드포인트
+  // ================================================================
+
+  /// 게시판
+  static String get boards => '$baseUrl/api/boards';
+  static String boardById(int boardId) => '$baseUrl/api/boards/$boardId';
+  static String get boardsByType => '$baseUrl/api/boards/type';
+  static String boardByType(String type) => '$baseUrl/api/boards/type/$type';
+  static String get myBoards => '$baseUrl/api/boards/my';
+  static String get searchBoards => '$baseUrl/api/boards/search';
+  static String get pinnedNotices => '$baseUrl/api/boards/pinned';
+
+  /// 관리자 게시판
+  static String get adminBoards => '$baseUrl/api/admin/boards';
+  static String adminBoardById(int boardId) => '$baseUrl/api/admin/boards/$boardId';
+  static String adminBoardPin(int boardId) => '$baseUrl/api/admin/boards/$boardId/pin';
+
+  // ================================================================
   // 유틸리티 메서드들
   // ================================================================
 
