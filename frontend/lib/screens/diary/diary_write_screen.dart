@@ -22,28 +22,16 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
   final TextEditingController _contentController = TextEditingController();
   final FocusNode _titleFocusNode = FocusNode();
   final FocusNode _contentFocusNode = FocusNode();
-  
+
   bool _isLoading = false;
-  String _selectedMood = '';
   File? _selectedImage;
   String? _uploadedImageUrl;
   final ImagePicker _imagePicker = ImagePicker();
-  
-  final List<Map<String, String>> _moodOptions = [
-    {'emoji': '😊', 'label': '행복해요'},
-    {'emoji': '🥰', 'label': '사랑스러워요'},
-    {'emoji': '😌', 'label': '평온해요'},
-    {'emoji': '😔', 'label': '우울해요'},
-    {'emoji': '😠', 'label': '화나요'},
-    {'emoji': '😰', 'label': '불안해요'},
-    {'emoji': '🤔', 'label': '복잡해요'},
-    {'emoji': '😴', 'label': '피곤해요'},
-  ];
 
   @override
   void initState() {
     super.initState();
-    
+
     _fadeController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
@@ -75,7 +63,6 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
     await _pickImageFromSource(ImageSource.gallery);
   }
 
-
   Future<void> _pickImageFromSource(ImageSource source) async {
     try {
       final XFile? image = await _imagePicker.pickImage(
@@ -84,13 +71,14 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
         maxHeight: 1024,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
         final imageFile = File(image.path);
-        
+
         // 파일 유효성 검증
         if (!DiaryImageService.validateImageFile(imageFile)) {
-          _showErrorSnackBar('유효하지 않은 이미지 파일입니다. (최대 10MB, jpg/png/gif/webp만 허용)');
+          _showErrorSnackBar(
+              '유효하지 않은 이미지 파일입니다. (최대 10MB, jpg/png/gif/webp만 허용)');
           return;
         }
 
@@ -118,12 +106,12 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
       _showErrorSnackBar('제목을 입력해주세요.');
       return;
     }
-    
+
     if (_contentController.text.trim().isEmpty) {
       _showErrorSnackBar('일기 내용을 입력해주세요.');
       return;
     }
-    
+
     // 로그인 상태 확인
     final authToken = await ApiService.getAuthToken();
     if (authToken == null) {
@@ -140,7 +128,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
 
     try {
       final diaryService = DiaryService();
-      
+
       // 이미지가 선택된 경우 먼저 업로드 (S3로)
       String? imageUrl;
       if (_selectedImage != null) {
@@ -148,21 +136,20 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
         if (!DiaryImageService.validateImageFile(_selectedImage!)) {
           throw Exception('유효하지 않은 이미지 파일입니다. (최대 10MB, jpg/png/gif/webp만 허용)');
         }
-        
+
         imageUrl = await DiaryImageService.uploadDiaryImage(_selectedImage!);
         setState(() {
           _uploadedImageUrl = imageUrl;
         });
       }
-      
+
       await diaryService.createDiary(
         title: _titleController.text.trim(),
         content: _contentController.text.trim(),
         diaryDate: DateTime.now(),
-        moodEmoji: _selectedMood,
         imageUrl: imageUrl,
       );
-      
+
       if (mounted) {
         Navigator.of(context).pop(true); // 성공 시 true 반환
         ScaffoldMessenger.of(context).showSnackBar(
@@ -178,10 +165,12 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
       }
     } catch (error) {
       print('Diary save error: $error');
-      if (mounted) {
-        _showErrorSnackBar(error.toString().contains('이미 해당 날짜에') 
-            ? '이미 오늘 작성한 일기가 있습니다.'
-            : '일기 저장에 실패했습니다.');
+      if (!mounted) return;
+
+      if (error is ApiException && error.statusCode == 409) {
+        _showErrorSnackBar('오늘 일기는 이미 작성되었어요. 내일 다시 작성해 주세요.');
+      } else {
+        _showErrorSnackBar('일기 작성에 실패했습니다.');
       }
     } finally {
       if (mounted) {
@@ -308,8 +297,18 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final monthNames = [
-      '1월', '2월', '3월', '4월', '5월', '6월',
-      '7월', '8월', '9월', '10월', '11월', '12월'
+      '1월',
+      '2월',
+      '3월',
+      '4월',
+      '5월',
+      '6월',
+      '7월',
+      '8월',
+      '9월',
+      '10월',
+      '11월',
+      '12월'
     ];
     final weekdays = ['월', '화', '수', '목', '금', '토', '일'];
 
@@ -333,11 +332,14 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
             builder: (context, child) {
               return Opacity(
                 opacity: _fadeAnimation.value,
-                child: Column(
+                child: Stack(
                   children: [
+                    Column(
+                      children: [
                     // Custom App Bar
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 16),
                       child: Row(
                         children: [
                           IconButton(
@@ -382,7 +384,9 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
                                       height: 16,
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.white),
                                       ),
                                     )
                                   : const Text(
@@ -397,7 +401,7 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
                         ],
                       ),
                     ),
-                    
+
                     // Content
                     Expanded(
                       child: Container(
@@ -418,185 +422,156 @@ class _DiaryWriteScreenState extends State<DiaryWriteScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                            // Title Input
-                            TextField(
-                              controller: _titleController,
-                              focusNode: _titleFocusNode,
-                              decoration: const InputDecoration(
-                                hintText: '오늘은 어떤 하루였나요?',
-                                hintStyle: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 18,
-                                ),
-                                border: InputBorder.none,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 2,
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Mood Selection
-                            const Text(
-                              '오늘의 기분',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 12),
-                            
-                            Container(
-                              height: 60,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: _moodOptions.length,
-                                itemBuilder: (context, index) {
-                                  final mood = _moodOptions[index];
-                                  final isSelected = _selectedMood == mood['emoji'];
-                                  
-                                  return GestureDetector(
-                                    onTap: () {
-                                      setState(() {
-                                        _selectedMood = isSelected ? '' : mood['emoji']!;
-                                      });
-                                    },
-                                    child: Container(
-                                      margin: const EdgeInsets.only(right: 12),
-                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: isSelected 
-                                            ? const Color(0xFF667eea).withValues(alpha: 0.1)
-                                            : Colors.grey.withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(30),
-                                        border: Border.all(
-                                          color: isSelected 
-                                              ? const Color(0xFF667eea)
-                                              : Colors.transparent,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            mood['emoji']!,
-                                            style: const TextStyle(fontSize: 20),
-                                          ),
-                                          const SizedBox(height: 2),
-                                          Text(
-                                            mood['label']!,
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              color: isSelected 
-                                                  ? const Color(0xFF667eea)
-                                                  : Colors.grey.shade600,
-                                              fontWeight: isSelected 
-                                                  ? FontWeight.w600
-                                                  : FontWeight.normal,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 20),
-                            
-                            // Image Selection
-                            const Text(
-                              '사진 추가',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            
-                            const SizedBox(height: 12),
-                            
-                            _buildImageSection(),
-                            
-                            const SizedBox(height: 24),
-                            
-                            // Content Input
-                            Container(
-                              constraints: const BoxConstraints(
-                                minHeight: 200,
-                                maxHeight: 400,
-                              ),
-                              child: TextField(
-                                controller: _contentController,
-                                focusNode: _contentFocusNode,
+                              // Title Input
+                              TextField(
+                                controller: _titleController,
+                                focusNode: _titleFocusNode,
                                 decoration: const InputDecoration(
-                                  hintText: '오늘 있었던 일들을 자유롭게 적어보세요.\n\nAI가 당신의 감정을 분석하고 따뜻한 코멘트를 남겨드릴게요 💕',
+                                  hintText: '오늘은 어떤 하루였나요?',
                                   hintStyle: TextStyle(
                                     color: Colors.grey,
-                                    fontSize: 16,
-                                    height: 1.5,
+                                    fontSize: 18,
                                   ),
                                   border: InputBorder.none,
                                   contentPadding: EdgeInsets.zero,
                                 ),
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                   color: Colors.black87,
-                                  height: 1.6,
                                 ),
-                                maxLines: null,
-                                keyboardType: TextInputType.multiline,
-                                textInputAction: TextInputAction.newline,
-                                textAlignVertical: TextAlignVertical.top,
+                                maxLines: 2,
                               ),
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // Bottom Info
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+
+                              const SizedBox(height: 20),
+
+                              // Image Selection
+                              const Text(
+                                '사진 추가',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
                               ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.auto_awesome,
-                                    color: Colors.grey.shade600,
-                                    size: 16,
+
+                              const SizedBox(height: 12),
+
+                              _buildImageSection(),
+
+                              const SizedBox(height: 24),
+
+                              // Content Input
+                              Container(
+                                constraints: const BoxConstraints(
+                                  minHeight: 200,
+                                  maxHeight: 400,
+                                ),
+                                child: TextField(
+                                  controller: _contentController,
+                                  focusNode: _contentFocusNode,
+                                  decoration: const InputDecoration(
+                                    hintText:
+                                        '오늘 있었던 일들을 자유롭게 적어보세요.\n\nAI가 당신의 감정을 분석하고 따뜻한 코멘트를 남겨드릴게요 💕',
+                                    hintStyle: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 16,
+                                      height: 1.5,
+                                    ),
+                                    border: InputBorder.none,
+                                    contentPadding: EdgeInsets.zero,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      'AI가 일기를 분석하여 감정 이모지와 개인화된 코멘트를 작성해드릴게요',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey.shade600,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                    height: 1.6,
+                                  ),
+                                  maxLines: null,
+                                  keyboardType: TextInputType.multiline,
+                                  textInputAction: TextInputAction.newline,
+                                  textAlignVertical: TextAlignVertical.top,
+                                ),
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Bottom Info
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.auto_awesome,
+                                      color: Colors.grey.shade600,
+                                      size: 16,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'AI가 일기를 분석하여 감정 이모지와 개인화된 코멘트를 작성해드릴게요',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade600,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            
-                            // 키보드를 위한 여백
-                            SizedBox(height: MediaQuery.of(context).viewInsets.bottom > 0 ? 100 : 20),
-                          ],
+
+                              // 키보드를 위한 여백
+                              SizedBox(
+                                  height:
+                                      MediaQuery.of(context).viewInsets.bottom >
+                                              0
+                                          ? 100
+                                          : 20),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
+                    ),
+                    if (_isLoading)
+                      Positioned.fill(
+                        child: Container(
+                          color: Colors.black.withOpacity(0.35),
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  'AI 분석중..',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                const Text(
+                                  '따뜻한 피드백을 준비하고 있어요',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               );

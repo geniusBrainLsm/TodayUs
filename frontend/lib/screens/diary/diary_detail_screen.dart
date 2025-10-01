@@ -359,11 +359,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                                               child: _buildDiaryContent(),
                                             ),
 
-                                            // AI Analysis
-                                            if (_diary!['aiProcessed'] == true)
-                                              SliverToBoxAdapter(
-                                                child: _buildAiAnalysis(),
-                                              ),
+
 
                                             // Comments Section
                                             SliverToBoxAdapter(
@@ -447,28 +443,6 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                   ],
                 ),
               ),
-
-              // Mood Emoji
-              if (_diary!['moodEmoji'] != null &&
-                  _diary!['moodEmoji'].toString().isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    _diary!['moodEmoji'],
-                    style: const TextStyle(fontSize: 28),
-                  ),
-                ),
             ],
           ),
 
@@ -575,74 +549,6 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
     );
   }
 
-  Widget _buildAiAnalysis() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 24),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4A90E2).withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFF4A90E2).withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.auto_awesome,
-                color: const Color(0xFF4A90E2),
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              const Text(
-                'AI 감정 분석',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF4A90E2),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (_diary!['aiEmotion'] != null &&
-              _diary!['aiEmotion'].toString().isNotEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                '감정: ${_diary!['aiEmotion']}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF4A90E2),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          if (_diary!['aiComment'] != null &&
-              _diary!['aiComment'].toString().isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              _diary!['aiComment'],
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF4A90E2),
-                height: 1.5,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   Widget _buildCommentsSection() {
     final comments = _diary!['comments'] as List<dynamic>? ?? [];
 
@@ -722,7 +628,6 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Comment Header
                       Row(
                         children: [
                           if (isAiComment)
@@ -766,10 +671,7 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 8),
-
-                      // Comment Content
                       Text(
                         commentMap['content'],
                         style: TextStyle(

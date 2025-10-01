@@ -15,7 +15,6 @@ class DiaryService {
     required String title,
     required String content,
     required DateTime diaryDate,
-    required String moodEmoji,
     String? imageUrl,
   }) async {
     try {
@@ -23,22 +22,20 @@ class DiaryService {
       print('Title: $title');
       print('Content length: ${content.length}');
       print('Date: ${diaryDate.toIso8601String().split('T')[0]}');
-      print('Mood: $moodEmoji');
       print('ImageUrl: $imageUrl');
       print('API Endpoint: ${ApiEndpoints.diaries}');
-      
+
       // 인증 토큰 확인
       final authToken = await ApiService.getAuthToken();
       print('Auth token: ${authToken != null ? "Present (${authToken.substring(0, 20)}...)" : "Missing"}');
-      
+
       final requestBody = {
         'title': title,
         'content': content,
         'diaryDate': diaryDate.toIso8601String().split('T')[0],
-        'moodEmoji': moodEmoji,
         if (imageUrl != null) 'imageUrl': imageUrl,
       };
-      
+
       print('Request body: $requestBody');
       
       final response = await ApiService.post(
@@ -116,7 +113,6 @@ class DiaryService {
     required String title,
     required String content,
     required DateTime diaryDate,
-    required String moodEmoji,
     String? imageUrl,
   }) async {
     try {
@@ -126,7 +122,6 @@ class DiaryService {
           'title': title,
           'content': content,
           'diaryDate': diaryDate.toIso8601String().split('T')[0],
-          'moodEmoji': moodEmoji,
           if (imageUrl != null) 'imageUrl': imageUrl,
         },
       );

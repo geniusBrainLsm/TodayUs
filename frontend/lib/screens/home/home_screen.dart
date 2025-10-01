@@ -11,7 +11,6 @@ import '../../services/daily_message_service.dart';
 import '../../widgets/couple_message_popup.dart';
 import '../diary/diary_write_screen.dart';
 import '../diary/diary_detail_screen.dart';
-import '../weekly_emotion_summary_screen.dart';
 import '../weekly_feedback/weekly_feedback_history_screen.dart';
 import '../../config/environment.dart';
 
@@ -660,54 +659,6 @@ class _HomeScreenState extends State<HomeScreen>
                   ],
                 ),
               ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const WeeklyEmotionSummaryScreen(),
-                    ),
-                  );
-                },
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFE91E63),
-                        Color(0xFFAD1457),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFE91E63).withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Text(
-                        '주간 요약',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(
-                        Icons.arrow_forward,
-                        color: Colors.white,
-                        size: 14,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
 
@@ -942,20 +893,6 @@ class _HomeScreenState extends State<HomeScreen>
                                   );
                                 },
                               ),
-                            ),
-                          )
-                        // Mood emoji
-                        else if (diary['moodEmoji'] != null &&
-                            diary['moodEmoji'].toString().isNotEmpty)
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              diary['moodEmoji'],
-                              style: const TextStyle(fontSize: 16),
                             ),
                           ),
                         const SizedBox(width: 12),

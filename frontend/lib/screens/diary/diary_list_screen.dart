@@ -1,43 +1,57 @@
 import 'package:flutter/material.dart';
+
+import '../../config/environment.dart';
 import '../../services/diary_service.dart';
 import 'diary_detail_screen.dart';
-import '../../config/environment.dart';
 
 class DiaryListScreen extends StatefulWidget {
   const DiaryListScreen({super.key});
 
   @override
-  State<DiaryListScreen> createState() => _DiaryListScreenState();
+  DiaryListScreenState createState() => DiaryListScreenState();
 }
 
-class _DiaryListScreenState extends State<DiaryListScreen> {
+class DiaryListScreenState extends State<DiaryListScreen> {
   final DiaryService _diaryService = DiaryService();
+
   final ScrollController _scrollController = ScrollController();
-  
+
   List<Map<String, dynamic>> _diaries = [];
-  List<Map<String, dynamic>> _emotionStats = [];
+
   bool _isLoading = false;
+
   bool _hasMore = true;
+
   int _currentPage = 0;
+
   final int _pageSize = 20;
-  bool _isLoadingEmotionStats = false;
+
+  static const List<Color> _authorPalette = <Color>[
+    Color(0xFFFF6B9A),
+    Color(0xFF60A5FA),
+  ];
+
+  final Map<String, Color> _authorColors = {};
 
   @override
   void initState() {
     super.initState();
+
     _loadDiaries();
-    _loadEmotionStats();
+
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+
     super.dispose();
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 50) {
       if (!_isLoading && _hasMore) {
         _loadMoreDiaries();
       }
@@ -46,137 +60,103 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
 
   Future<void> _loadDiaries() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final diaries = await _diaryService.getDiaries(page: 0, size: _pageSize);
-      
+
+      if (!mounted) return;
+
       setState(() {
         _diaries = diaries;
+
         _currentPage = 0;
+
         _hasMore = diaries.length == _pageSize;
+
         _isLoading = false;
+
+        _assignAuthorColors();
       });
     } catch (error) {
-      print('Load diaries error: $error');
+      debugPrint('Load diaries error: $error');
+
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('일기 목록을 불러오는데 실패했습니다.'),
-            backgroundColor: Colors.red.shade400,
-          ),
-        );
-      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('일기 목록을 불러오지 못했어요.'),
+          backgroundColor: Colors.red.shade400,
+        ),
+      );
     }
   }
 
   Future<void> _loadMoreDiaries() async {
     if (_isLoading || !_hasMore) return;
-    
+
     setState(() {
       _isLoading = true;
     });
 
     try {
       final nextPage = _currentPage + 1;
-      final newDiaries = await _diaryService.getDiaries(page: nextPage, size: _pageSize);
-      
+
+      final newDiaries =
+          await _diaryService.getDiaries(page: nextPage, size: _pageSize);
+
+      if (!mounted) return;
+
       setState(() {
         _diaries.addAll(newDiaries);
+
         _currentPage = nextPage;
+
         _hasMore = newDiaries.length == _pageSize;
+
         _isLoading = false;
+
+        _assignAuthorColors();
       });
     } catch (error) {
-      print('Load more diaries error: $error');
+      debugPrint('Load more diaries error: $error');
+
+      if (!mounted) return;
+
       setState(() {
         _isLoading = false;
       });
     }
   }
 
-  Future<void> _refreshDiaries() async {
+  Future<void> refreshContent() async {
     await _loadDiaries();
-    await _loadEmotionStats();
-  }
-
-  Future<void> _loadEmotionStats() async {
-    setState(() {
-      _isLoadingEmotionStats = true;
-    });
-
-    try {
-      // Load emotion stats for current month
-      final now = DateTime.now();
-      final startDate = DateTime(now.year, now.month, 1);
-      final endDate = DateTime(now.year, now.month + 1, 0);
-      
-      final emotionStats = await _diaryService.getEmotionStats(
-        startDate: startDate,
-        endDate: endDate,
-      );
-      
-      setState(() {
-        _emotionStats = emotionStats;
-        _isLoadingEmotionStats = false;
-      });
-    } catch (error) {
-      print('Load emotion stats error: $error');
-      setState(() {
-        _isLoadingEmotionStats = false;
-      });
-    }
-  }
-
-  String _getEmotionEmoji(String emotion) {
-    switch (emotion) {
-      case '😊': return '😊';
-      case '🥰': return '🥰';
-      case '😌': return '😌';
-      case '😔': return '😔';
-      case '😠': return '😠';
-      case '😰': return '😰';
-      case '🤔': return '🤔';
-      case '😴': return '😴';
-      default: return emotion;
-    }
-  }
-
-  String _getEmotionLabel(String emotion) {
-    switch (emotion) {
-      case '😊': return '행복해요';
-      case '🥰': return '사랑스러워요';
-      case '😌': return '평온해요';
-      case '😔': return '우울해요';
-      case '😠': return '화나요';
-      case '😰': return '불안해요';
-      case '🤔': return '복잡해요';
-      case '😴': return '피곤해요';
-      default: return emotion;
-    }
   }
 
   String _formatDate(String dateStr) {
     try {
       final date = DateTime.parse(dateStr);
+
       final now = DateTime.now();
+
       final today = DateTime(now.year, now.month, now.day);
+
       final yesterday = today.subtract(const Duration(days: 1));
+
       final diaryDate = DateTime(date.year, date.month, date.day);
-      
+
       if (diaryDate == today) {
         return '오늘';
       } else if (diaryDate == yesterday) {
         return '어제';
       } else {
-        final monthNames = ['1월', '2월', '3월', '4월', '5월', '6월',
-                           '7월', '8월', '9월', '10월', '11월', '12월'];
         return '${date.month}월 ${date.day}일';
       }
     } catch (e) {
@@ -184,481 +164,411 @@ class _DiaryListScreenState extends State<DiaryListScreen> {
     }
   }
 
+  String? _resolveImageUrl(dynamic rawUrl) {
+    if (rawUrl == null) return null;
+
+    final value = rawUrl.toString();
+
+    if (value.isEmpty) return null;
+
+    if (value.startsWith('http')) {
+      return value;
+    }
+
+    return '${EnvironmentConfig.baseUrl}$value';
+  }
+
+  void _assignAuthorColors() {
+    final uniqueKeys = <String>{};
+
+    for (final diary in _diaries) {
+      final author = diary['author'] as Map<String, dynamic>?;
+
+      final key = _authorKey(author);
+
+      if (key != null) {
+        uniqueKeys.add(key);
+      }
+    }
+
+    final sortedKeys = uniqueKeys.toList()..sort();
+
+    _authorColors.clear();
+
+    for (var i = 0; i < sortedKeys.length; i++) {
+      final color = _authorPalette[i % _authorPalette.length];
+
+      _authorColors[sortedKeys[i]] = color;
+    }
+  }
+
+  String? _authorKey(Map<String, dynamic>? author) {
+    if (author == null) return null;
+
+    final id = author['id'];
+
+    if (id != null) {
+      return 'id:$id';
+    }
+
+    final email = (author['email'] as String?)?.trim();
+
+    if (email != null && email.isNotEmpty) {
+      return 'email:$email';
+    }
+
+    return null;
+  }
+
+  Color _colorForAuthor(Map<String, dynamic>? author) {
+    final key = _authorKey(author);
+
+    if (key == null) {
+      return const Color(0xFFE5E7EB);
+    }
+
+    return _authorColors[key] ?? _authorPalette[0];
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      body: Container(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Header Card
-              Container(
-                margin: const EdgeInsets.all(20),
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  ],
+                    child: const Icon(
+                      Icons.menu_book_rounded,
+                      color: Color(0xFF4A90E2),
+                      size: 30,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '우리의 일기',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          '오늘 느낀 마음을 기록하고 서로의 하루를 확인해보세요.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF6B7280),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: CustomScrollView(
+                controller: _scrollController,
+                slivers: [
+                  if (_diaries.isEmpty && !_isLoading)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(24),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 4),
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.menu_book_outlined,
+                                size: 44,
+                                color: Color(0xFF4A90E2),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            const Text(
+                              '아직 작성된 일기가 없어요.',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '따뜻했던 순간을 기록하면 이곳에서 바로 확인할 수 있어요.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF6B7280),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == _diaries.length) {
+                              if (_hasMore && _isLoading) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Center(
+                                    child: CircularProgressIndicator(
+                                      color: Color(0xFF4A90E2),
+                                    ),
+                                  ),
+                                );
+                              }
+
+                              return const SizedBox.shrink();
+                            }
+
+                            final diary = _diaries[index];
+
+                            return _buildDiaryCard(diary);
+                          },
+                          childCount: _diaries.length +
+                              (_hasMore && _isLoading ? 1 : 0),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDiaryCard(Map<String, dynamic> diary) {
+    final author = (diary['author'] as Map<String, dynamic>?) ?? {};
+
+    final nickname = (author['nickname'] as String?)?.trim();
+
+    final displayName =
+        (nickname == null || nickname.isEmpty) ? '익명' : nickname;
+
+    final borderColor = _colorForAuthor(author);
+
+    final imageUrl = _resolveImageUrl(diary['imageUrl']);
+
+    final title = (diary['title'] as String?) ?? '';
+
+    final content = (diary['content'] as String?) ?? '';
+
+    final int commentCount =
+        int.tryParse((diary['commentCount'] ?? '0').toString()) ?? 0;
+
+    final diaryId = diary['id'] as int?;
+
+    return GestureDetector(
+      onTap: diaryId == null
+          ? null
+          : () async {
+              await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => DiaryDetailScreen(diaryId: diaryId),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.menu_book_rounded,
-                        color: Color(0xFF4A90E2),
-                        size: 30,
+              );
+
+              if (mounted) {
+                await refreshContent();
+              }
+            },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: borderColor,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (imageUrl != null)
+                  Container(
+                    width: 80,
+                    height: 80,
+                    margin: const EdgeInsets.only(right: 12),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 6,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey.shade200,
+                            child: Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey.shade400,
+                              size: 24,
+                            ),
+                          );
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          }
+
+                          return Container(
+                            color: Colors.grey.shade100,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                value: loadingProgress.expectedTotalBytes !=
+                                        null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
+                  ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            '우리의 일기장',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
+                          Text(
+                            displayName,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                               color: Colors.black87,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: 2),
                           Text(
-                            '소중한 추억을 기록해보세요',
+                            _formatDate(
+                                diary['diaryDate']?.toString() ?? ''),
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Colors.grey.shade600,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                    IconButton(
-                      onPressed: _refreshDiaries,
-                      icon: Icon(
-                        Icons.refresh,
-                        color: Colors.grey.shade600,
+                      const SizedBox(height: 12),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              
-              // Emotion Summary Card
-              if (!_isLoadingEmotionStats && _emotionStats.isNotEmpty)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                      if (content.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          content,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF4B5563),
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           Icon(
-                            Icons.auto_awesome,
-                            color: const Color(0xFF4A90E2),
-                            size: 20,
+                            Icons.chat_bubble_outline,
+                            size: 16,
+                            color: Colors.grey.shade600,
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '이번 달 감정 요약',
+                          const SizedBox(width: 4),
+                          Text(
+                            '댓글 $commentCount개',
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      
-                      // Emotion bars
-                      Column(
-                        children: _emotionStats.take(5).map((stat) {
-                          final emotion = stat['emotion'] as String;
-                          final count = stat['count'] as int;
-                          final percentage = stat['percentage'] as double;
-                          
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              children: [
-                                // Emoji
-                                Container(
-                                  width: 32,
-                                  height: 32,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      _getEmotionEmoji(emotion),
-                                      style: const TextStyle(fontSize: 16),
-                                    ),
-                                  ),
-                                ),
-                                
-                                const SizedBox(width: 12),
-                                
-                                // Label and bar
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            _getEmotionLabel(emotion),
-                                            style: const TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.black87,
-                                            ),
-                                          ),
-                                          Text(
-                                            '$count회',
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey.shade600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 4),
-                                      LinearProgressIndicator(
-                                        value: percentage / 100,
-                                        backgroundColor: Colors.grey.shade200,
-                                        valueColor: AlwaysStoppedAnimation<Color>(
-                                          const Color(0xFF4A90E2),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                      ),
                     ],
                   ),
                 ),
-              
-              // Content
-              Expanded(
-                child: CustomScrollView(
-                  controller: _scrollController,
-                  slivers: [
-                    // Empty State
-                    if (_diaries.isEmpty && !_isLoading)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(40),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              children: [
-                                Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Icon(
-                                    Icons.menu_book_rounded,
-                                    size: 40,
-                                    color: Color(0xFF4A90E2),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                const Text(
-                                  '아직 작성된 일기가 없어요',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  '오른쪽 하단의 + 버튼을 눌러\n첫 번째 일기를 작성해보세요!',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    else
-                      SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              if (index == _diaries.length) {
-                                return _hasMore && _isLoading
-                                    ? const Center(
-                                        child: Padding(
-                                          padding: EdgeInsets.all(16),
-                                          child: CircularProgressIndicator(
-                                            color: Color(0xFF4A90E2),
-                                          ),
-                                        ),
-                                      )
-                                    : const SizedBox.shrink();
-                              }
-                              
-                              final diary = _diaries[index];
-                              final author = diary['author'] as Map<String, dynamic>;
-                              
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => DiaryDetailScreen(
-                                        diaryId: diary['id'],
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.05),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Thumbnail Image (if exists)
-                                      if (diary['imageUrl'] != null && diary['imageUrl'].toString().isNotEmpty)
-                                        Container(
-                                          width: 80,
-                                          height: 80,
-                                          margin: const EdgeInsets.only(right: 12),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(8),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withValues(alpha: 0.1),
-                                                blurRadius: 4,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                            ],
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
-                                            child: Image.network(
-                                              '${EnvironmentConfig.baseUrl}${diary['imageUrl']}',
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Container(
-                                                  color: Colors.grey.shade200,
-                                                  child: Icon(
-                                                    Icons.image_not_supported,
-                                                    color: Colors.grey.shade400,
-                                                    size: 24,
-                                                  ),
-                                                );
-                                              },
-                                              loadingBuilder: (context, child, loadingProgress) {
-                                                if (loadingProgress == null) return child;
-                                                return Container(
-                                                  color: Colors.grey.shade100,
-                                                  child: Center(
-                                                    child: CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      value: loadingProgress.expectedTotalBytes != null
-                                                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                                                          : null,
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                      
-                                      // Content
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            // Header
-                                            Row(
-                                              children: [
-                                                // Mood Emoji
-                                                if (diary['moodEmoji'] != null && diary['moodEmoji'].toString().isNotEmpty)
-                                                  Container(
-                                                    padding: const EdgeInsets.all(8),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                    child: Text(
-                                                      diary['moodEmoji'],
-                                                      style: const TextStyle(fontSize: 20),
-                                                    ),
-                                                  ),
-                                                const SizedBox(width: 12),
-                                                
-                                                // Author and Date
-                                                Expanded(
-                                                  child: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      Text(
-                                                        author['nickname'] ?? '익명',
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight: FontWeight.w600,
-                                                          color: Colors.black87,
-                                                        ),
-                                                      ),
-                                                      Text(
-                                                        _formatDate(diary['diaryDate']),
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors.grey.shade600,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                                
-                                                // AI Processing Status
-                                                if (diary['aiProcessed'] == true)
-                                                  Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.green.shade100,
-                                                      borderRadius: BorderRadius.circular(12),
-                                                    ),
-                                                    child: Row(
-                                                      mainAxisSize: MainAxisSize.min,
-                                                      children: [
-                                                        Icon(
-                                                          Icons.auto_awesome,
-                                                          size: 12,
-                                                          color: Colors.green.shade700,
-                                                        ),
-                                                        const SizedBox(width: 4),
-                                                        Text(
-                                                          'AI 분석',
-                                                          style: TextStyle(
-                                                            fontSize: 10,
-                                                            color: Colors.green.shade700,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                            
-                                            const SizedBox(height: 12),
-                                            
-                                            // Title
-                                            Text(
-                                              diary['title'],
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black87,
-                                              ),
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            
-                                            const SizedBox(height: 8),
-                                            
-                                            // Comment Count
-                                            Row(
-                                              children: [
-                                                Icon(
-                                                  Icons.chat_bubble_outline,
-                                                  size: 16,
-                                                  color: Colors.grey.shade600,
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Text(
-                                                  '댓글 ${diary['commentCount'] ?? 0}개',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.grey.shade600,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                            childCount: _diaries.length + (_hasMore && _isLoading ? 1 : 0),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ),
       ),
     );

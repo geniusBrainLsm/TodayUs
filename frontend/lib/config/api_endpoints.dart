@@ -137,6 +137,15 @@ class ApiEndpoints {
   static String get uploadFile => '$baseUrl/api/upload/file';
 
   // ================================================================
+  // Store 관련 엔드포인트
+  // ================================================================
+
+  /// 상점
+  static String get storeOverview => '$baseUrl/api/store/robots';
+  static String storePurchase(int robotId) => '$baseUrl/api/store/purchase/$robotId';
+  static String storeActivate(int robotId) => '$baseUrl/api/store/activate/$robotId';
+
+  // ================================================================
   // 유틸리티 메서드들
   // ================================================================
 

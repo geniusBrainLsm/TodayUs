@@ -24,14 +24,12 @@ class AiChatDiaryReference {
   final int diaryId;
   final String diaryDate;
   final String title;
-  final String? moodEmoji;
   final String summary;
 
   AiChatDiaryReference({
     required this.diaryId,
     required this.diaryDate,
     required this.title,
-    this.moodEmoji,
     required this.summary,
   });
 
@@ -40,7 +38,6 @@ class AiChatDiaryReference {
       diaryId: (json['diaryId'] as num).toInt(),
       diaryDate: json['diaryDate']?.toString() ?? '',
       title: json['title']?.toString() ?? '',
-      moodEmoji: json['moodEmoji']?.toString(),
       summary: json['summary']?.toString() ?? '',
     );
   }

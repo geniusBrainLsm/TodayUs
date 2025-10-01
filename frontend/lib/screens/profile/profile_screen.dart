@@ -7,7 +7,6 @@ import '../../services/auth_service.dart';
 import '../../services/anniversary_service.dart';
 import '../../services/diary_service.dart';
 import '../../services/notification_service.dart';
-import '../../services/profile_image_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -74,14 +73,6 @@ class _ProfileScreenState extends State<ProfileScreen>
       final email = await AuthService.getCurrentUserEmail();
       final anniversary = await AnniversaryService.getAnniversary();
 
-      // 프로필 이미지 URL 가져오기
-      String? profileImageUrl;
-      try {
-        profileImageUrl = await ProfileImageService.getProfileImageUrl();
-      } catch (e) {
-        print('Error loading profile image: $e');
-      }
-
       // Load statistics
       int totalDiaries = 0;
       List<Map<String, dynamic>> emotionStats = [];
@@ -121,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         setState(() {
           _nickname = nickname;
           _userEmail = email;
-          _profileImageUrl = profileImageUrl;
+          _profileImageUrl = null;
           _anniversaryDate = anniversary?['anniversaryDate'] as DateTime?;
           _totalDiaries = totalDiaries;
           _emotionStats = emotionStats;
@@ -285,164 +276,33 @@ class _ProfileScreenState extends State<ProfileScreen>
     return '$formattedDate (D+$days)';
   }
 
-  /// 프로필 이미지 편집 (바로 갤러리 열기)
+  /// 프로필 이미지 편집 (기능 제거됨)
   Future<void> _editProfileImage() async {
-    // 바로 갤러리에서 이미지 선택
-    await _pickImage(ImageSource.gallery);
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 512,
-        maxHeight: 512,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        final imageFile = File(pickedFile.path);
-
-        // 파일 유효성 검증
-        if (!ProfileImageService.validateImageFile(imageFile)) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text('유효하지 않은 이미지 파일입니다. (최대 5MB, jpg/png/gif/webp만 허용)'),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-          return;
-        }
-
-        // 로딩 상태 표시
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => const Center(
-            child: CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
-            ),
-          ),
-        );
-
-        try {
-          // 서버에 업로드
-          final imageUrl =
-              await ProfileImageService.uploadProfileImage(imageFile);
-
-          if (mounted) {
-            Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-
-            setState(() {
-              _selectedImage = imageFile;
-              _profileImageUrl = imageUrl;
-            });
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('프로필 사진이 성공적으로 업로드되었습니다! 📸'),
-                backgroundColor: Colors.green,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-              ),
-            );
-          }
-        } catch (e) {
-          if (mounted) {
-            Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('프로필 사진 업로드 실패: ${e.toString()}'),
-                backgroundColor: Colors.red,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        }
-      }
-    } catch (e) {
-      print('Error picking image: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('이미지 선택 중 오류가 발생했습니다'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _removeProfileImage() async {
-    // 삭제할 프로필 이미지가 있는지 확인
-    if (_profileImageUrl == null && _selectedImage == null) {
+    // 프로필 이미지 기능이 제거되었습니다
+    if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('삭제할 프로필 사진이 없습니다'),
+          content: Text('프로필 이미지 기능이 제거되었습니다'),
           backgroundColor: Colors.orange,
           behavior: SnackBarBehavior.floating,
         ),
       );
-      return;
-    }
-
-    try {
-      // 로딩 상태 표시
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF667eea)),
-          ),
-        ),
-      );
-
-      // 서버에서 프로필 이미지 삭제
-      if (_profileImageUrl != null) {
-        await ProfileImageService.deleteProfileImage();
-      }
-
-      if (mounted) {
-        Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-
-        setState(() {
-          _selectedImage = null;
-          _profileImageUrl = null;
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('프로필 사진이 삭제되었습니다'),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10)),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('프로필 사진 삭제 실패: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
     }
   }
+
+  Future<void> _removeProfileImage() async {
+    // 프로필 이미지 기능이 제거되었습니다
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('프로필 이미지 기능이 제거되었습니다'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
 
   Widget _buildDefaultAvatar() {
     return Center(

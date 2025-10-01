@@ -280,10 +280,7 @@ class _ReferenceList extends StatelessWidget {
         ),
         const SizedBox(height: 6),
         ...references.take(5).map((reference) {
-          final subtitle =
-              reference.moodEmoji != null && reference.moodEmoji!.isNotEmpty
-                  ? '${reference.diaryDate} · ${reference.moodEmoji}'
-                  : reference.diaryDate;
+          final subtitle = reference.diaryDate;
           return Container(
             margin: const EdgeInsets.only(bottom: 6),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
