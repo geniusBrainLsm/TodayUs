@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../config/api_endpoints.dart';
 import 'api_service.dart';
 
@@ -155,9 +156,19 @@ class BoardService {
     final response = await ApiService.get(ApiEndpoints.pinnedNotices);
 
     if (ApiService.isSuccessful(response.statusCode)) {
-      final data = ApiService.parseResponse(response);
-      if (data is List) {
-        return data.cast<Map<String, dynamic>>();
+      if (response.body.isEmpty) {
+        return [];
+      }
+
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return decoded
+              .map((item) => item as Map<String, dynamic>)
+              .toList();
+        }
+      } catch (e) {
+        print('Error parsing pinned notices: $e');
       }
       return [];
     } else {
