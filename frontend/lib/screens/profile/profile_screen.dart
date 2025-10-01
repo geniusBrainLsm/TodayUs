@@ -7,6 +7,7 @@ import '../../services/auth_service.dart';
 import '../../services/anniversary_service.dart';
 import '../../services/diary_service.dart';
 import '../../services/notification_service.dart';
+import '../board/board_list_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -1072,6 +1073,13 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
           const SizedBox(height: 8),
           _buildModernSettingsTile(
+            icon: Icons.forum,
+            title: '게시판',
+            subtitle: '공지사항 및 건의사항',
+            onTap: _navigateToBoard,
+          ),
+          const SizedBox(height: 8),
+          _buildModernSettingsTile(
             icon: Icons.privacy_tip,
             title: '개인정보 처리방침',
             subtitle: '개인정보 보호 정책',
@@ -1298,6 +1306,14 @@ class _ProfileScreenState extends State<ProfileScreen>
       default:
         return emotion;
     }
+  }
+
+  /// 게시판으로 이동
+  void _navigateToBoard() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BoardListScreen()),
+    );
   }
 
 // 알림 설정 기능

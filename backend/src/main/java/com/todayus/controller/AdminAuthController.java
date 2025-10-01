@@ -1,4 +1,4 @@
-package com.todayus.controller;
+﻿package com.todayus.controller;
 
 import com.todayus.dto.UserDto;
 import com.todayus.entity.User;
@@ -22,9 +22,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AdminAuthController {
 
-    private static final String ADMIN_USERNAME = "admin";
-    private static final String ADMIN_PASSWORD = "todayus2024!";
-    private static final String ADMIN_EMAIL = "admin@todayus";
+    private static final String ADMIN_USERNAME = "lsm";
+    private static final String ADMIN_PASSWORD = "erdwvudr2qvud1!!";
+    private static final String ADMIN_EMAIL = "geniusbrainlsm@gmail.com";
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;

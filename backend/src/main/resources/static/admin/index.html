@@ -1,9 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TodayUs 관리자 – 로봇 상점</title>
+  <title>TodayUs 관리자</title>
   <style>
     :root {
       color-scheme: light dark;
@@ -14,12 +14,79 @@
       --muted: #6b7280;
       --border: #d1d5db;
     }
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       font-family: 'Pretendard', 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+    }
+
+    /* Login Screen */
+    #loginScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .login-card {
+      background: white;
+      border-radius: 24px;
+      padding: 48px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 420px;
+      margin: 20px;
+    }
+    .login-card h1 {
+      margin: 0 0 8px;
+      font-size: 32px;
+      color: #1f2937;
+    }
+    .login-card p {
+      margin: 0 0 32px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+    .form-group input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      font-size: 15px;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .error-message {
+      color: #dc2626;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+    .error-message.show {
+      display: block;
+    }
+
+    /* Main App */
+    #app {
+      display: none;
     }
     header {
       padding: 24px 32px 16px;
@@ -30,9 +97,35 @@
       top: 0;
       z-index: 10;
     }
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
     h1 {
       margin: 0 0 8px;
       font-size: 28px;
+    }
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .nav-tab {
+      padding: 8px 16px;
+      border-radius: 8px;
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .nav-tab.active {
+      background: var(--primary);
+      color: white;
     }
     main {
       padding: 24px 32px 48px;
@@ -69,7 +162,7 @@
       box-sizing: border-box;
     }
     textarea { min-height: 80px; }
-    .row { display: grid; gap: 16px; }
+    .row { display: grid; gap: 16px; margin-bottom: 16px; }
     .row.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .row.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     button {
@@ -99,529 +192,428 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    button:not(:disabled):hover {
+      transform: translateY(-2px);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 16px;
-      font-size: 14px;
     }
     th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid rgba(209, 213, 219, 0.6);
+      padding: 12px;
       text-align: left;
+      border-bottom: 1px solid var(--border);
     }
     th {
-      background: rgba(37, 99, 235, 0.08);
+      background: #f9fafb;
       font-weight: 600;
-      color: #1d4ed8;
-    }
-    .statusChip {
-      display: inline-flex;
-      align-items: center;
-      padding: 4px 10px;
-      border-radius: 999px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-    .statusChip.active { background: rgba(16, 185, 129, 0.18); color: #047857; }
-    .statusChip.inactive { background: rgba(148, 163, 184, 0.18); color: #475569; }
-    .statusChip.default { background: rgba(249, 115, 22, 0.18); color: #c2410c; }
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 12px;
-    }
-    .token-input {
-      flex: 1;
-      min-width: 220px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    #message {
-      margin-top: 12px;
       font-size: 13px;
-      color: #059669;
+      color: var(--muted);
     }
-    details summary {
-      cursor: pointer;
+    .badge {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 600;
-      margin-bottom: 12px;
     }
-    details[open] summary { color: #2563eb; }
-    @media (max-width: 900px) {
-      .row.two, .row.three { grid-template-columns: 1fr; }
+    .badge.admin {
+      background: #fef3c7;
+      color: #92400e;
+    }
+    .badge.user {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .badge.notice {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .badge.suggestion {
+      background: #dbeafe;
+      color: #1e40af;
+    }
+    .badge.pinned {
+      background: #fca5a5;
+      color: #7f1d1d;
     }
   </style>
 </head>
 <body>
+
+<!-- Login Screen -->
+<div id="loginScreen">
+  <div class="login-card">
+    <h1>🔐 관리자 로그인</h1>
+    <p>TodayUs 관리자 페이지에 오신 것을 환영합니다</p>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">아이디</label>
+        <input type="text" id="username" required autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="password">비밀번호</label>
+        <input type="password" id="password" required autocomplete="current-password" />
+      </div>
+      <div class="error-message" id="loginError"></div>
+      <button type="submit" class="primary" style="width: 100%; margin-top: 8px; padding: 14px;">
+        로그인
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app">
   <header>
-    <h1>AI 로봇 상점 관리자</h1>
-    <p style="color: var(--muted); margin: 0; font-size: 14px;">관리자 토큰을 입력하면 로봇 카탈로그와 오일을 관리할 수 있습니다.</p>
-    <div class="toolbar">
-      <div class="toolbar-group">
-        <input id="usernameInput" placeholder="관리자 아이디" autocomplete="username" />
-        <input id="passwordInput" type="password" placeholder="비밀번호" autocomplete="current-password" />
-        <button class="primary" id="loginBtn">로그인</button>
+    <div class="header-content">
+      <div>
+        <h1>TodayUs 관리자</h1>
+        <div class="nav-tabs">
+          <button class="nav-tab active" data-tab="boards">게시글 관리</button>
+          <button class="nav-tab" data-tab="notices">공지사항 등록</button>
+          <button class="nav-tab" data-tab="robots">로봇 관리</button>
+        </div>
       </div>
-      <div class="toolbar-group">
-        <input id="tokenInput" type="password" placeholder="Bearer 토큰 입력" autocomplete="off" />
-        <button class="secondary" id="saveTokenBtn">토큰 저장</button>
-        <button class="secondary" id="clearTokenBtn">토큰 삭제</button>
-      </div>
-      <button class="secondary" id="loadRobotsBtn">로봇 목록 불러오기</button>
-      <span id="message"></span>
+      <button class="secondary" onclick="logout()">로그아웃</button>
     </div>
   </header>
 
   <main>
-    <section class="card">
-      <h2>로봇 목록</h2>
-      <div id="robotsContainer">관리자 로그인 또는 토큰 입력 후 “로봇 목록 불러오기”를 눌러주세요.</div>
-    </section>
-
-    <section class="card">
-      <h2>로봇 등록</h2>
-      <form id="createRobotForm" class="row" autocomplete="off">
-        <div class="row two">
-          <div>
-            <label>코드 (영문/숫자)
-              <input name="code" required />
-            </label>
-          </div>
-          <div>
-            <label>이름
-              <input name="name" required />
-            </label>
-          </div>
-        </div>
-        <div class="row two">
-          <div>
-            <label>가격 (OIL)
-              <input name="priceOil" type="number" min="0" required />
-            </label>
-          </div>
-          <div>
-            <label>대표 색상 (HEX)
-              <input name="themeColorHex" placeholder="#FF8AB8" />
-            </label>
-          </div>
-        </div>
-        <div class="row two">
-          <div>
-            <label>목업 이미지 URL
-              <input name="imageUrl" placeholder="https://..." />
-            </label>
-          </div>
-          <div>
-            <label>스플래시 이미지 URL
-              <input name="splashImageUrl" placeholder="https://..." />
-            </label>
-          </div>
-        </div>
-        <div>
-          <label>태그라인
-            <input name="tagline" placeholder="짧은 소개 문구" />
-          </label>
-        </div>
-        <div>
-          <label>로봇 설명</label>
-          <textarea name="description" placeholder="로봇 캐릭터 설명"></textarea>
-        </div>
-        <div class="row two">
-          <div>
-            <label>챗봇 지침 (사용자에게 보여줄 안내)</label>
-            <textarea name="chatUserGuidance" placeholder="응답 톤, 구조 등을 bullet로 작성"></textarea>
-          </div>
-          <div>
-            <label>일기 코멘트 지침</label>
-            <textarea name="commentUserGuidance" placeholder="코멘트 길이, 톤 등"></textarea>
-          </div>
-        </div>
-        <div class="row three">
-          <div>
-            <label>Chat Max Tokens
-              <input name="chatMaxTokens" type="number" min="0" placeholder="예: 500" />
-            </label>
-          </div>
-          <div>
-            <label>Chat Temperature
-              <input name="chatTemperature" type="number" min="0" max="2" step="0.05" placeholder="예: 0.7" />
-            </label>
-          </div>
-          <div>
-            <label>Comment Max Tokens
-              <input name="commentMaxTokens" type="number" min="0" placeholder="예: 200" />
-            </label>
-          </div>
-        </div>
-        <div class="row two">
-          <div>
-            <label>Comment Temperature
-              <input name="commentTemperature" type="number" min="0" max="2" step="0.05" placeholder="예: 0.6" />
-            </label>
-          </div>
-          <div>
-            <label>Preview 메시지
-              <input name="previewMessage" placeholder="홈/상점에서 보여줄 한 줄" />
-            </label>
-          </div>
-        </div>
-        <div style="display:flex; gap:12px; align-items:center;">
-          <label style="flex:0 0 auto;"><input type="checkbox" name="defaultRobot" /> 기본 로봇으로 지정</label>
-          <label style="flex:0 0 auto;"><input type="checkbox" name="active" checked /> 판매/사용 가능</label>
-        </div>
-        <div style="margin-top:16px; display:flex; gap:12px;">
-          <button type="submit" class="primary">로봇 등록</button>
-          <button type="reset" class="secondary">초기화</button>
-        </div>
-      </form>
-    </section>
-
-    <section class="card">
-      <h2>오일 관리</h2>
-      <form id="oilForm" class="row two" autocomplete="off">
-        <div>
-          <label>사용자 ID
-            <input name="userId" type="number" min="1" required />
-          </label>
-        </div>
-        <div>
-          <label>오일 수량 (+ 충전, - 차감)
-            <input name="amount" type="number" required />
-          </label>
-        </div>
-        <div>
-          <label>감소 여부
-            <select name="deduct">
-              <option value="false">증정 (플러스)</option>
-              <option value="true">차감 (마이너스)</option>
-            </select>
-          </label>
-        </div>
-        <div style="display:flex; align-items:flex-end;">
-          <button type="submit" class="primary">적용</button>
-        </div>
-      </form>
-    </section>
-  </main>
-
-  <template id="robotRowTemplate">
-    <details class="robot-panel" open>
-      <summary></summary>
-      <form class="robot-form row" autocomplete="off"></form>
-      <div style="display:flex; gap:8px; margin-top:12px;">
-        <button type="submit" class="primary">저장</button>
-        <button type="button" class="secondary">활성 토글</button>
-        <button type="button" class="danger">삭제</button>
+    <!-- 게시글 관리 탭 -->
+    <div id="boards-content" class="tab-content active">
+      <div class="card">
+        <h2>📋 게시글 관리</h2>
+        <table id="boardsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>제목</th>
+              <th>작성자</th>
+              <th>타입</th>
+              <th>고정</th>
+              <th>조회수</th>
+              <th>작성일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
-    </details>
-  </template>
+    </div>
 
-  <script>
-    const tokenKey = 'todayus_admin_token';
-    let authToken = localStorage.getItem(tokenKey) || '';
-
-    const tokenInput = document.getElementById('tokenInput');
-    const saveTokenBtn = document.getElementById('saveTokenBtn');
-    const loadRobotsBtn = document.getElementById('loadRobotsBtn');
-    const messageSpan = document.getElementById('message');
-    const robotsContainer = document.getElementById('robotsContainer');
-    const createRobotForm = document.getElementById('createRobotForm');
-    const oilForm = document.getElementById('oilForm');
-
-    if (authToken) {
-      tokenInput.value = authToken;
-    }
-
-    const robotTemplate = document.getElementById('robotRowTemplate');
-
-    function showMessage(text, color = '#059669') {
-      messageSpan.textContent = text;
-      messageSpan.style.color = color;
-      if (text) {
-        setTimeout(() => {
-          if (messageSpan.textContent === text) {
-            messageSpan.textContent = '';
-          }
-        }, 4000);
-      }
-    }
-
-    function requireToken() {
-      if (!authToken) {
-        showMessage('먼저 관리자 토큰을 입력하세요.', '#b91c1c');
-        throw new Error('missing token');
-      }
-    }
-
-    async function apiFetch(path, options = {}) {
-      requireToken();
-      const res = await fetch(path, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: Bearer ,
-          ...(options.headers || {}),
-        },
-      });
-      if (!res.ok) {
-        const body = await res.text();
-        const errorText = body ? ${res.status} :  : ${res.status} ;
-        throw new Error(errorText);
-      }
-      const text = await res.text();
-      return text ? JSON.parse(text) : {};
-    }
-
-    function renderRobots(overview) {
-      if (!overview.robots || overview.robots.length === 0) {
-        robotsContainer.innerHTML = '<p>등록된 로봇이 없습니다.</p>';
-        return;
-      }
-      const fragment = document.createDocumentFragment();
-      overview.robots.forEach((robot) => {
-        const clone = robotTemplate.content.cloneNode(true);
-        const details = clone.querySelector('details');
-        const summary = clone.querySelector('summary');
-        const form = clone.querySelector('form');
-        const saveBtn = clone.querySelector('.primary');
-        const toggleBtn = clone.querySelector('.secondary');
-        const deleteBtn = clone.querySelector('.danger');
-
-        summary.innerHTML = # ·  <span class="statusChip "></span> + (robot.defaultRobot ? ' <span class="statusChip default">DEFAULT</span>' : '');
-
-        form.innerHTML = 
-          <div class="row two">
-            <div>
-              <label>코드
-                <input name="code" value="" required />
-              </label>
-            </div>
-            <div>
-              <label>이름
-                <input name="name" value="" required />
-              </label>
-            </div>
+    <!-- 공지사항 등록 탭 -->
+    <div id="notices-content" class="tab-content">
+      <div class="card">
+        <h2>📢 공지사항 등록</h2>
+        <form id="noticeForm">
+          <div class="form-group">
+            <label for="noticeTitle">제목</label>
+            <input type="text" id="noticeTitle" required maxlength="100" />
           </div>
-          <div class="row two">
-            <div>
-              <label>가격(OIL)
-                <input name="priceOil" type="number" min="0" value="" required />
-              </label>
-            </div>
-            <div>
-              <label>대표 색상 HEX
-                <input name="themeColorHex" value="" />
-              </label>
-            </div>
+          <div class="form-group">
+            <label for="noticeContent">내용</label>
+            <textarea id="noticeContent" required maxlength="2000"></textarea>
           </div>
+          <div class="form-group">
+            <label for="noticeType">게시글 타입</label>
+            <select id="noticeType">
+              <option value="NOTICE">공지사항</option>
+              <option value="FAQ">FAQ</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="noticePinned" />
+              상단 고정
+            </label>
+          </div>
+          <button type="submit" class="primary">등록하기</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 로봇 관리 탭 -->
+    <div id="robots-content" class="tab-content">
+      <div class="card">
+        <h2>🤖 AI 로봇 등록</h2>
+        <form id="robotForm">
           <div class="row two">
             <div>
-              <label>목업 이미지 URL
-                <input name="imageUrl" value="" />
-              </label>
+              <label for="robotName">로봇 이름</label>
+              <input type="text" id="robotName" required />
             </div>
             <div>
-              <label>스플래시 이미지 URL
-                <input name="splashImageUrl" value="" />
-              </label>
+              <label for="robotPrice">가격 (오일)</label>
+              <input type="number" id="robotPrice" required min="0" />
             </div>
           </div>
           <div>
-            <label>태그라인
-              <input name="tagline" value="" />
-            </label>
+            <label for="robotDescription">설명</label>
+            <textarea id="robotDescription" required></textarea>
           </div>
           <div>
-            <label>로봇 설명
-              <textarea name="description"></textarea>
-            </label>
-          </div>
-          <div class="row two">
-            <div>
-              <label>응답 안내
-                <textarea name="chatUserGuidance"></textarea>
-              </label>
-            </div>
-            <div>
-              <label>코멘트 안내
-                <textarea name="commentUserGuidance"></textarea>
-              </label>
-            </div>
+            <label for="robotPrompt">시스템 프롬프트</label>
+            <textarea id="robotPrompt" required></textarea>
           </div>
           <div class="row three">
             <div>
-              <label>Chat Max Tokens
-                <input name="chatMaxTokens" type="number" value="" />
-              </label>
+              <label for="robotMaxTokens">최대 토큰</label>
+              <input type="number" id="robotMaxTokens" required min="100" />
             </div>
             <div>
-              <label>Chat Temperature
-                <input name="chatTemperature" type="number" step="0.05" value="" />
-              </label>
+              <label for="robotTemperature">Temperature</label>
+              <input type="number" id="robotTemperature" step="0.1" min="0" max="2" required />
             </div>
             <div>
-              <label>Comment Max Tokens
-                <input name="commentMaxTokens" type="number" value="" />
-              </label>
+              <label for="robotImageUrl">이미지 URL</label>
+              <input type="text" id="robotImageUrl" />
             </div>
           </div>
-          <div class="row two">
-            <div>
-              <label>Comment Temperature
-                <input name="commentTemperature" type="number" step="0.05" value="" />
-              </label>
-            </div>
-            <div style="display:flex; gap:16px; align-items:center; padding-top:12px;">
-              <label><input type="checkbox" name="defaultRobot"  /> 기본</label>
-              <label><input type="checkbox" name="active"  /> 판매/사용</label>
-            </div>
-          </div>;
+          <button type="submit" class="primary">로봇 등록</button>
+        </form>
+      </div>
 
-        form.addEventListener('submit', async (event) => {
-          event.preventDefault();
-          try {
-            const payload = formToPayload(new FormData(form));
-            await apiFetch(/api/admin/store/robots/, {
-              method: 'PUT',
-              body: JSON.stringify(payload),
-            });
-            showMessage('로봇 정보가 저장되었습니다.');
-            await loadRobots();
-          } catch (err) {
-            console.error(err);
-            showMessage(저장 실패: , '#b91c1c');
-          }
-        });
+      <div class="card">
+        <h2>등록된 로봇 목록</h2>
+        <table id="robotsTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>이름</th>
+              <th>가격</th>
+              <th>설명</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
 
-        toggleBtn.textContent = robot.active ? '비활성화' : '활성화';
-        toggleBtn.addEventListener('click', async () => {
-          try {
-            const payload = formToPayload(new FormData(form));
-            payload.active = !robot.active;
-            await apiFetch(/api/admin/store/robots/, {
-              method: 'PUT',
-              body: JSON.stringify(payload),
-            });
-            showMessage(로봇이  되었습니다.);
-            await loadRobots();
-          } catch (err) {
-            console.error(err);
-            showMessage(상태 변경 실패: , '#b91c1c');
-          }
-        });
+<script>
+  let authToken = null;
 
-        deleteBtn.addEventListener('click', async () => {
-          if (!confirm(${robot.name} 로봇을 삭제할까요?)) return;
-          try {
-            await apiFetch(/api/admin/store/robots/, {
-              method: 'DELETE',
-            });
-            showMessage('로봇이 삭제되었습니다.');
-            await loadRobots();
-          } catch (err) {
-            console.error(err);
-            showMessage(삭제 실패: , '#b91c1c');
-          }
-        });
+  // API 호출 헬퍼
+  async function apiCall(url, options = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+      ...options.headers
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error || response.statusText);
+    }
+    return response.json();
+  }
 
-        fragment.appendChild(clone);
+  // 로그인
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const errorEl = document.getElementById('loginError');
+
+    try {
+      const data = await apiCall('/api/admin/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
       });
-      robotsContainer.innerHTML = '';
-      robotsContainer.appendChild(fragment);
-    }
 
-    function formToPayload(formData) {
-      const payload = {};
-      formData.forEach((value, key) => {
-        if (['defaultRobot', 'active'].includes(key)) {
-          payload[key] = value === 'on';
-        } else if (/MaxTokens$/i.test(key) || key === 'priceOil') {
-          payload[key] = value ? Number(value) : null;
-        } else if (/Temperature$/i.test(key)) {
-          payload[key] = value ? Number(value) : null;
-        } else {
-          payload[key] = value?.toString() ?? null;
-        }
-      });
-      return payload;
-    }
+      authToken = data.token;
+      localStorage.setItem('adminToken', authToken);
 
-    async function loadRobots() {
-      try {
-        const overview = await apiFetch('/api/admin/store/robots');
-        renderRobots(overview);
-        showMessage('로봇 목록을 불러왔습니다.');
-      } catch (err) {
-        console.error(err);
-        showMessage(로봇 정보를 불러오지 못했습니다: , '#b91c1c');
-      }
-    }
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
 
-    saveTokenBtn.addEventListener('click', () => {
-      authToken = tokenInput.value.trim();
-      localStorage.setItem(tokenKey, authToken);
-      showMessage('토큰을 저장했습니다.');
-    });
-
-    loadRobotsBtn.addEventListener('click', () => {
-      authToken = tokenInput.value.trim();
-      localStorage.setItem(tokenKey, authToken);
+      loadBoards();
       loadRobots();
-    });
+    } catch (err) {
+      errorEl.textContent = '로그인 실패: ' + err.message;
+      errorEl.classList.add('show');
+    }
+  });
 
-    createRobotForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(createRobotForm);
-      const payload = formToPayload(formData);
-      try {
-        await apiFetch('/api/admin/store/robots', {
-          method: 'POST',
-          body: JSON.stringify(payload),
-        });
-        createRobotForm.reset();
-        showMessage('새 로봇이 등록되었습니다.');
-        await loadRobots();
-      } catch (err) {
-        console.error(err);
-        showMessage(등록 실패: , '#b91c1c');
-      }
-    });
+  // 로그아웃
+  function logout() {
+    authToken = null;
+    localStorage.removeItem('adminToken');
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+  }
 
-    oilForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(oilForm);
-      const userId = formData.get('userId');
-      const amount = Number(formData.get('amount'));
-      const deduct = formData.get('deduct') === 'true';
-      if (!userId) {
-        showMessage('사용자 ID를 입력하세요.', '#b91c1c');
-        return;
-      }
-      try {
-        await apiFetch(/api/admin/store/users//oil, {
-          method: 'POST',
-          body: JSON.stringify({ amount: Math.abs(amount), deduct }),
-        });
-        showMessage('오일 조정이 완료되었습니다.');
-        oilForm.reset();
-      } catch (err) {
-        console.error(err);
-        showMessage(오일 조정 실패: , '#b91c1c');
-      }
+  // 자동 로그인 체크
+  window.addEventListener('DOMContentLoaded', () => {
+    const savedToken = localStorage.getItem('adminToken');
+    if (savedToken) {
+      authToken = savedToken;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      loadBoards();
+      loadRobots();
+    }
+  });
+
+  // 탭 전환
+  document.querySelectorAll('.nav-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetTab = tab.dataset.tab;
+
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      tab.classList.add('active');
+      document.getElementById(targetTab + '-content').classList.add('active');
     });
-  </script>
+  });
+
+  // 게시글 목록 로드
+  async function loadBoards() {
+    try {
+      const data = await apiCall('/api/boards?page=0&size=100');
+      const tbody = document.querySelector('#boardsTable tbody');
+      tbody.innerHTML = data.content.map(board => `
+        <tr>
+          <td>${board.id}</td>
+          <td>${board.title}</td>
+          <td>${board.author?.nickname || '익명'}</td>
+          <td><span class="badge ${board.type.toLowerCase()}">${board.type}</span></td>
+          <td>${board.pinned ? '<span class="badge pinned">고정</span>' : '-'}</td>
+          <td>${board.viewCount}</td>
+          <td>${new Date(board.createdAt).toLocaleDateString()}</td>
+          <td>
+            <button class="secondary" onclick="togglePin(${board.id}, ${board.pinned})">
+              ${board.pinned ? '고정 해제' : '고정'}
+            </button>
+            <button class="danger" onclick="deleteBoard(${board.id})">삭제</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      console.error('게시글 로드 실패:', err);
+    }
+  }
+
+  // 게시글 고정 토글
+  async function togglePin(boardId, currentPinned) {
+    try {
+      await apiCall(`/api/admin/boards/${boardId}/pin`, { method: 'POST' });
+      alert(currentPinned ? '고정이 해제되었습니다' : '게시글이 고정되었습니다');
+      loadBoards();
+    } catch (err) {
+      alert('고정 변경 실패: ' + err.message);
+    }
+  }
+
+  // 게시글 삭제
+  async function deleteBoard(boardId) {
+    if (!confirm('정말 이 게시글을 삭제하시겠습니까?')) return;
+    try {
+      await apiCall(`/api/boards/${boardId}`, { method: 'DELETE' });
+      alert('게시글이 삭제되었습니다');
+      loadBoards();
+    } catch (err) {
+      alert('삭제 실패: ' + err.message);
+    }
+  }
+
+  // 공지사항 등록
+  document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const title = document.getElementById('noticeTitle').value;
+    const content = document.getElementById('noticeContent').value;
+    const type = document.getElementById('noticeType').value;
+    const pinned = document.getElementById('noticePinned').checked;
+
+    try {
+      const result = await apiCall('/api/boards', {
+        method: 'POST',
+        body: JSON.stringify({ title, content, type })
+      });
+
+      // 고정 체크박스가 선택되어 있으면 바로 고정
+      if (pinned && result.id) {
+        await apiCall(`/api/admin/boards/${result.id}/pin`, { method: 'POST' });
+      }
+
+      alert('공지사항이 등록되었습니다');
+      document.getElementById('noticeForm').reset();
+      loadBoards();
+    } catch (err) {
+      alert('등록 실패: ' + err.message);
+    }
+  });
+
+  // 로봇 목록 로드
+  async function loadRobots() {
+    try {
+      const data = await apiCall('/api/admin/robots');
+      const tbody = document.querySelector('#robotsTable tbody');
+      tbody.innerHTML = data.map(robot => `
+        <tr>
+          <td>${robot.id}</td>
+          <td>${robot.name}</td>
+          <td>${robot.price} 오일</td>
+          <td>${robot.description}</td>
+          <td>
+            <button class="danger" onclick="deleteRobot(${robot.id})">삭제</button>
+          </td>
+        </tr>
+      `).join('');
+    } catch (err) {
+      console.error('로봇 로드 실패:', err);
+    }
+  }
+
+  // 로봇 등록
+  document.getElementById('robotForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const robotData = {
+      name: document.getElementById('robotName').value,
+      price: parseInt(document.getElementById('robotPrice').value),
+      description: document.getElementById('robotDescription').value,
+      systemPrompt: document.getElementById('robotPrompt').value,
+      maxTokens: parseInt(document.getElementById('robotMaxTokens').value),
+      temperature: parseFloat(document.getElementById('robotTemperature').value),
+      imageUrl: document.getElementById('robotImageUrl').value || null
+    };
+
+    try {
+      await apiCall('/api/admin/robots', {
+        method: 'POST',
+        body: JSON.stringify(robotData)
+      });
+      alert('로봇이 등록되었습니다');
+      document.getElementById('robotForm').reset();
+      loadRobots();
+    } catch (err) {
+      alert('등록 실패: ' + err.message);
+    }
+  });
+
+  // 로봇 삭제
+  async function deleteRobot(robotId) {
+    if (!confirm('정말 이 로봇을 삭제하시겠습니까?')) return;
+    try {
+      await apiCall(`/api/admin/robots/${robotId}`, { method: 'DELETE' });
+      alert('로봇이 삭제되었습니다');
+      loadRobots();
+    } catch (err) {
+      alert('삭제 실패: ' + err.message);
+    }
+  }
+</script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-

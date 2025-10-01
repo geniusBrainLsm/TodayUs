@@ -1,4 +1,4 @@
-package com.todayus.config;
+﻿package com.todayus.config;
 
 import com.todayus.security.CustomOAuth2UserService;
 import com.todayus.security.JwtAuthenticationFilter;
@@ -43,8 +43,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint(jsonAuthenticationEntryPoint())
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").permitAll() // health, info ??釉??袁⑷퍥 actuator ??됱뒠
-                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message", "/api/admin/login").permitAll()
+                        .requestMatchers("/actuator/**").permitAll() // health, info ?????熬곣뫕??actuator ???깅뮔
+                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message", "/api/admin/login", "/admin/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
@@ -81,7 +81,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         
-        // ??됱뒠???袁⑥컭????쇱젟
+        // ???깅뮔???熬곣뫁而?????깆젧
         configuration.setAllowedOriginPatterns(Arrays.asList(
                 "http://localhost:*", 
                 "http://127.0.0.1:*",
@@ -115,11 +115,12 @@ public class SecurityConfig {
         ));
         
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L); // 1??볦퍢 筌?Ŋ??
+        configuration.setMaxAge(3600L); // 1??蹂?뜟 嶺?흮??
         
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
+
 

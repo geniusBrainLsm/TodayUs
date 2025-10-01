@@ -9,7 +9,8 @@
       "Bash(ssh:*)",
       "Bash(git add:*)",
       "Bash(git push:*)",
-      "Read(//c/Users/dlwns/IdeaProjects/TodayUs/**)"
+      "Read(//c/Users/dlwns/IdeaProjects/TodayUs/**)",
+      "Bash(flutter analyze:*)"
     ],
     "deny": [],
     "ask": []
