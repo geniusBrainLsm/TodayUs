@@ -62,6 +62,13 @@ public class AdminAuthController {
                                 .build()
                 ));
 
+        // 기존 유저의 Role을 ADMIN으로 강제 업데이트
+        if (adminUser.getRole() != User.Role.ADMIN) {
+            log.info("🔧 관리자 Role 업데이트: {} -> ADMIN", adminUser.getRole());
+            adminUser.setRole(User.Role.ADMIN);
+            adminUser = userRepository.save(adminUser);
+        }
+
         robotStoreService.ensureActiveRobot(adminUser);
 
         String token = jwtTokenProvider.createToken(adminUser.getId().toString(), adminUser.getEmail());
