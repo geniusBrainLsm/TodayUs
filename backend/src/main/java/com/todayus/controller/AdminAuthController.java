@@ -32,13 +32,22 @@ public class AdminAuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> payload) {
+        log.info("🔐 관리자 로그인 시도");
+        log.info("📦 Payload: {}", payload);
+
         String username = payload.getOrDefault("username", "").trim();
         String password = payload.getOrDefault("password", "").trim();
 
+        log.info("👤 Username: {}", username);
+        log.info("🔑 Password length: {}", password.length());
+
         if (!ADMIN_USERNAME.equals(username) || !ADMIN_PASSWORD.equals(password)) {
+            log.warn("❌ 로그인 실패 - 잘못된 자격 증명");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "잘못된 관리자 자격 증명입니다."));
         }
+
+        log.info("✅ 자격 증명 확인 성공");
 
         User adminUser = userRepository.findByEmail(ADMIN_EMAIL)
                 .orElseGet(() -> userRepository.save(
