@@ -52,7 +52,7 @@ public class User {
     @Column(nullable = false)
     private Role role;
     @Builder.Default
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer oilBalance = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -95,6 +95,11 @@ public class User {
     public String getProfileImageUrl() {
         return this.profileImageUrl;
     }
+
+    public Integer getOilBalance() {
+        return this.oilBalance == null ? 0 : this.oilBalance;
+    }
+
     public void addOil(int amount) {
         if (amount <= 0) {
             return;
