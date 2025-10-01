@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/board_service.dart';
+import '../../services/board_comment_service.dart';
 
 class BoardDetailScreen extends StatefulWidget {
   final int boardId;
@@ -13,11 +14,20 @@ class BoardDetailScreen extends StatefulWidget {
 class _BoardDetailScreenState extends State<BoardDetailScreen> {
   bool _isLoading = true;
   Map<String, dynamic>? _board;
+  List<Map<String, dynamic>> _comments = [];
+  final TextEditingController _commentController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadBoard();
+    _loadComments();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBoard() async {
@@ -38,6 +48,71 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('게시글을 불러오는데 실패했습니다: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadComments() async {
+    try {
+      final comments = await BoardCommentService.getComments(widget.boardId);
+      if (mounted) {
+        setState(() {
+          _comments = comments;
+        });
+      }
+    } catch (e) {
+      print('댓글 로드 오류: $e');
+    }
+  }
+
+  Future<void> _createComment() async {
+    if (_commentController.text.trim().isEmpty) {
+      return;
+    }
+
+    try {
+      await BoardCommentService.createComment(
+        boardId: widget.boardId,
+        content: _commentController.text.trim(),
+      );
+
+      _commentController.clear();
+      await _loadComments();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('댓글이 작성되었습니다')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('댓글 작성 실패: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _deleteComment(int commentId) async {
+    try {
+      final success = await BoardCommentService.deleteComment(
+        boardId: widget.boardId,
+        commentId: commentId,
+      );
+
+      if (success) {
+        await _loadComments();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('댓글이 삭제되었습니다')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('댓글 삭제 실패: $e')),
         );
       }
     }
@@ -288,17 +363,223 @@ class _BoardDetailScreenState extends State<BoardDetailScreen> {
             // Content
             Padding(
               padding: const EdgeInsets.all(20),
+              child: Text(
+                content,
+                style: const TextStyle(
+                  fontSize: 16,
+                  height: 1.6,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+
+            // Admin Reply Section
+            if (_board!['adminReply'] != null) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.blue.shade200, width: 1.5),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.admin_panel_settings, color: Colors.blue.shade700, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          '관리자 답변',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                        const Spacer(),
+                        if (_board!['adminRepliedAt'] != null)
+                          Text(
+                            _formatDate(_board!['adminRepliedAt']),
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      _board!['adminReply'],
+                      style: const TextStyle(fontSize: 15, height: 1.5, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // Comments Section
+            Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    content,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.6,
-                      color: Colors.black87,
-                    ),
+                  Row(
+                    children: [
+                      const Text(
+                        '댓글',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${_comments.length}',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 16),
+
+                  // Comment Input
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commentController,
+                          decoration: InputDecoration(
+                            hintText: '댓글을 입력하세요',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                          ),
+                          maxLines: null,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        onPressed: _createComment,
+                        icon: const Icon(Icons.send),
+                        color: const Color(0xFF667eea),
+                        iconSize: 28,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Comments List
+                  if (_comments.isEmpty)
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Text(
+                          '첫 댓글을 작성해보세요!',
+                          style: TextStyle(color: Colors.grey.shade600),
+                        ),
+                      ),
+                    )
+                  else
+                    ListView.separated(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _comments.length,
+                      separatorBuilder: (context, index) => const Divider(height: 24),
+                      itemBuilder: (context, index) {
+                        final comment = _comments[index];
+                        final author = comment['author'] as Map<String, dynamic>?;
+                        final authorName = author?['nickname']?.toString() ?? '익명';
+                        final commentContent = comment['content']?.toString() ?? '';
+                        final createdAt = comment['createdAt']?.toString() ?? '';
+                        final commentId = comment['id'] as int?;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: const Color(0xFF667eea).withOpacity(0.2),
+                                  child: Text(
+                                    authorName.isNotEmpty ? authorName[0].toUpperCase() : '?',
+                                    style: const TextStyle(
+                                      color: Color(0xFF667eea),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  authorName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const Spacer(),
+                                Text(
+                                  _formatDate(createdAt),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.more_vert, size: 20),
+                                  onPressed: () {
+                                    if (commentId != null) {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text('댓글 삭제'),
+                                          content: const Text('이 댓글을 삭제하시겠습니까?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('취소'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () {
+                                                Navigator.pop(context);
+                                                _deleteComment(commentId);
+                                              },
+                                              child: const Text(
+                                                '삭제',
+                                                style: TextStyle(color: Colors.red),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 40),
+                              child: Text(
+                                commentContent,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  height: 1.5,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                 ],
               ),
             ),

@@ -3,6 +3,7 @@ package com.todayus.service;
 import com.todayus.dto.BoardDto;
 import com.todayus.entity.Board;
 import com.todayus.entity.User;
+import com.todayus.repository.BoardCommentRepository;
 import com.todayus.repository.BoardRepository;
 import com.todayus.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final BoardCommentRepository commentRepository;
     private final UserRepository userRepository;
 
     /**
@@ -85,7 +87,9 @@ public class BoardService {
         board.incrementViewCount();
         boardRepository.save(board);
 
-        return BoardDto.Response.from(board);
+        BoardDto.Response response = BoardDto.Response.from(board);
+        response.setCommentCount(commentRepository.countByBoardIdAndActive(boardId));
+        return response;
     }
 
     /**
@@ -244,5 +248,30 @@ public class BoardService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Board> boards = boardRepository.findAllForAdmin(pageable);
         return boards.map(BoardDto.Response::from);
+    }
+
+    /**
+     * 관리자: 게시글에 답변 등록
+     */
+    @Transactional
+    public BoardDto.Response replyToBoard(String userEmail, Long boardId, BoardDto.AdminReplyRequest request) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
+
+        if (user.getRole() != User.Role.ADMIN) {
+            throw new IllegalStateException("관리자만 답변을 등록할 수 있습니다.");
+        }
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+
+        board.setAdminReply(request.getReply());
+        board.setAdminReplier(user);
+        board.setAdminRepliedAt(java.time.LocalDateTime.now());
+
+        Board updated = boardRepository.save(board);
+        log.info("관리자 답변 등록 완료: boardId={}, admin={}", boardId, userEmail);
+
+        return BoardDto.Response.from(updated);
     }
 }

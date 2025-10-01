@@ -32,6 +32,15 @@ public class Board {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(columnDefinition = "TEXT")
+    private String adminReply;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+    private User adminReplier;
+
+    private LocalDateTime adminRepliedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private BoardType type;

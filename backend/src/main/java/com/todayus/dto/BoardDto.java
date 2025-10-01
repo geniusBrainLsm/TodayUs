@@ -52,6 +52,10 @@ public class BoardDto {
         private Integer viewCount;
         private Board.BoardStatus status;
         private AuthorInfo author;
+        private String adminReply;
+        private AuthorInfo adminReplier;
+        private LocalDateTime adminRepliedAt;
+        private Long commentCount;
         private LocalDateTime createdAt;
         private LocalDateTime updatedAt;
 
@@ -65,6 +69,10 @@ public class BoardDto {
                     .viewCount(board.getViewCount())
                     .status(board.getStatus())
                     .author(AuthorInfo.from(board.getAuthor()))
+                    .adminReply(board.getAdminReply())
+                    .adminReplier(board.getAdminReplier() != null ? AuthorInfo.from(board.getAdminReplier()) : null)
+                    .adminRepliedAt(board.getAdminRepliedAt())
+                    .commentCount(0L)
                     .createdAt(board.getCreatedAt())
                     .updatedAt(board.getUpdatedAt())
                     .build();
@@ -129,5 +137,15 @@ public class BoardDto {
         private String content;
         private Boolean pinned;
         private Board.BoardStatus status;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class AdminReplyRequest {
+        @NotBlank(message = "답변 내용은 필수입니다.")
+        private String reply;
     }
 }

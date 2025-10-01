@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/board_service.dart';
 import 'board_detail_screen.dart';
 import 'board_write_screen.dart';
+import 'my_boards_screen.dart';
 
 class BoardListScreen extends StatefulWidget {
   const BoardListScreen({super.key});
@@ -89,9 +90,26 @@ class _BoardListScreenState extends State<BoardListScreen>
           tabs: const [
             Tab(text: '전체'),
             Tab(text: '공지사항'),
-            Tab(text: '건의사항'),
+            Tab(text: '건의하기'),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const MyBoardsScreen(),
+                ),
+              );
+              if (result == true) {
+                _loadData();
+              }
+            },
+            tooltip: '내 글 보기',
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
