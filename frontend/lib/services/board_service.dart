@@ -157,7 +157,7 @@ class BoardService {
     if (ApiService.isSuccessful(response.statusCode)) {
       final data = ApiService.parseResponse(response);
       if (data is List) {
-        return List<Map<String, dynamic>>.from(data);
+        return data.cast<Map<String, dynamic>>();
       }
       return [];
     } else {
