@@ -1,7 +1,16 @@
 -- Couple 테이블에 오일과 활성 로봇 필드 추가
+-- 먼저 NULL 허용으로 추가
 ALTER TABLE couples
-ADD COLUMN oil_balance INTEGER NOT NULL DEFAULT 0,
-ADD COLUMN active_robot_id BIGINT;
+ADD COLUMN IF NOT EXISTS oil_balance INTEGER,
+ADD COLUMN IF NOT EXISTS active_robot_id BIGINT;
+
+-- 기존 데이터에 기본값 설정
+UPDATE couples SET oil_balance = 0 WHERE oil_balance IS NULL;
+
+-- NOT NULL 제약조건 추가
+ALTER TABLE couples
+ALTER COLUMN oil_balance SET NOT NULL,
+ALTER COLUMN oil_balance SET DEFAULT 0;
 
 -- CoupleRobot 테이블 생성
 CREATE TABLE couple_robots (
