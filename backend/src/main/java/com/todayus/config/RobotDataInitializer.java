@@ -29,9 +29,15 @@ public class RobotDataInitializer implements CommandLineRunner {
         createOrUpdateRobot(buildPinkRobot());
         createOrUpdateRobot(buildSkyRobot());
 
+        // 모든 커플에 대해 기본 로봇 초기화
         List<User> users = userRepository.findAll();
         for (User user : users) {
-            robotStoreService.ensureActiveRobot(user);
+            try {
+                robotStoreService.ensureActiveRobotForUser(user);
+            } catch (Exception e) {
+                // 커플 연결 안 된 사용자는 스킵
+                log.debug("User {} has no couple connection, skipping robot initialization", user.getEmail());
+            }
         }
     }
 

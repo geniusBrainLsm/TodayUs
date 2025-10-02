@@ -203,6 +203,15 @@ public class RobotStoreService {
         return fallback;
     }
 
+    /**
+     * User 기반으로 로봇 초기화 (커플 찾아서 처리)
+     * 관리자 등이 커플 연결 전에 호출할 때 사용
+     */
+    public AiRobot ensureActiveRobotForUser(User user) {
+        Couple couple = getCouple(user);
+        return ensureActiveRobot(couple);
+    }
+
     private AiRobot findActiveRobot(Long robotId) {
         AiRobot robot = aiRobotRepository.findById(robotId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "로봇을 찾을 수 없습니다."));
@@ -231,7 +240,7 @@ public class RobotStoreService {
     }
 
     private Couple getCouple(User user) {
-        return coupleRepository.findByUser1OrUser2(user, user)
+        return coupleRepository.findByUser1OrUser2(user)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "커플 연결이 필요합니다."));
     }
 

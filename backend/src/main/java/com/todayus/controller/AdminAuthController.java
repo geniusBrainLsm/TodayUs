@@ -69,7 +69,12 @@ public class AdminAuthController {
             adminUser = userRepository.save(adminUser);
         }
 
-        robotStoreService.ensureActiveRobot(adminUser);
+        // 관리자가 커플 연결되어 있으면 로봇 초기화
+        try {
+            robotStoreService.ensureActiveRobotForUser(adminUser);
+        } catch (Exception e) {
+            log.info("관리자는 아직 커플 연결 전입니다.");
+        }
 
         String token = jwtTokenProvider.createToken(adminUser.getId().toString(), adminUser.getEmail());
 
