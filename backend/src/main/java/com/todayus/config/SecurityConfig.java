@@ -83,7 +83,7 @@ public class SecurityConfig {
         
         // ???깅뮔???熬곣뫁而?????깆젧
         configuration.setAllowedOriginPatterns(Arrays.asList(
-                "http://localhost:*", 
+                "http://localhost:*",
                 "http://127.0.0.1:*",
                 "http://10.0.2.2:*",
                 "http://192.168.*.*:*",
@@ -91,7 +91,9 @@ public class SecurityConfig {
                 "https://*.vercel.app",
                 "https://*.netlify.app",
                 "https://todayus.com",
-                "https://*.todayus.com"
+                "https://*.todayus.com",
+                "https://todayus.shop",
+                "https://*.todayus.shop"
         ));
         
         configuration.setAllowedMethods(Arrays.asList(

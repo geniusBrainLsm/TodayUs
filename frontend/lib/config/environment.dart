@@ -26,9 +26,9 @@ class EnvironmentConfig {
     switch (_current) {
       case Environment.development:
         return {
-          'baseUrl': 'http://54.180.117.211:8080', // Jenkins 배포 서버
-          'baseUrlLocalhost': 'http://54.180.117.211:8080', // Jenkins 배포 서버
-          'baseUrlRealDevice': 'http://54.180.117.211:8080', // Jenkins 배포 서버
+          'baseUrl': 'https://todayus.shop', // HTTPS 도메인
+          'baseUrlLocalhost': 'https://todayus.shop', // HTTPS 도메인
+          'baseUrlRealDevice': 'https://todayus.shop', // HTTPS 도메인
           'enableLogging': true,
           'enableDebugMode': true,
           'apiTimeout': 30000, // 30초
@@ -54,14 +54,14 @@ class EnvironmentConfig {
     if (_current == Environment.development) {
       // 개발 환경에서 플랫폼별 URL 사용
       if (kIsWeb) {
-        return 'http://54.180.117.211:8080';
+        return 'https://todayus.shop';
       } else if (Platform.isAndroid) {
-        // 실제 디바이스에서는 Jenkins 배포 서버 사용
-        return 'http://54.180.117.211:8080'; // 실제 디바이스용
+        // 실제 디바이스에서는 HTTPS 도메인 사용
+        return 'https://todayus.shop'; // 실제 디바이스용
       } else if (Platform.isIOS) {
-        return 'http://54.180.117.211:8080'; // iOS 실제 디바이스용
+        return 'https://todayus.shop'; // iOS 실제 디바이스용
       } else {
-        return 'http://54.180.117.211:8080'; // Jenkins 배포 서버
+        return 'https://todayus.shop'; // HTTPS 도메인
       }
     } else {
       return config['baseUrl'] as String;
