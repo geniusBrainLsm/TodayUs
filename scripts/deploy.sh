@@ -20,11 +20,6 @@ git pull origin main
 if [ -f .env.backup ]; then
     echo "📂 Restoring .env file..."
     mv .env.backup .env
-elif [ ! -f .env ]; then
-    echo "⚠️  Warning: .env file not found! Creating from template..."
-    if [ -f .env.example ]; then
-        cp .env.example .env
-    fi
 fi
 
 # .env 파일 확인
