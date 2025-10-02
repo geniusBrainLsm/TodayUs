@@ -244,6 +244,78 @@
       background: #fca5a5;
       color: #7f1d1d;
     }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.show {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 800px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .modal-content h2 {
+      margin-top: 0;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .close-btn {
+      background: #f3f4f6;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 20px;
+      color: #6b7280;
+    }
+    .close-btn:hover {
+      background: #e5e7eb;
+    }
+    .board-meta {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+    .board-content {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 16px 0;
+      line-height: 1.6;
+    }
+    .admin-reply-section {
+      margin-top: 24px;
+      padding-top: 24px;
+      border-top: 2px solid var(--border);
+    }
+    .existing-reply {
+      background: #dbeafe;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
   </style>
 </head>
 <body>
@@ -298,6 +370,7 @@
               <th>제목</th>
               <th>작성자</th>
               <th>타입</th>
+              <th>답변</th>
               <th>고정</th>
               <th>조회수</th>
               <th>작성일</th>
@@ -400,6 +473,17 @@
   </main>
 </div>
 
+<!-- 게시글 상세 모달 -->
+<div id="boardModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>게시글 상세</h2>
+      <button class="close-btn" onclick="closeBoardModal()">&times;</button>
+    </div>
+    <div id="boardDetailContent"></div>
+  </div>
+</div>
+
 <script>
   let authToken = null;
 
@@ -481,14 +565,19 @@
   // 게시글 목록 로드
   async function loadBoards() {
     try {
-      const data = await apiCall('/api/boards?page=0&size=100');
+      const data = await apiCall('/api/admin/boards?page=0&size=100');
       const tbody = document.querySelector('#boardsTable tbody');
       tbody.innerHTML = data.content.map(board => `
         <tr>
           <td>${board.id}</td>
-          <td>${board.title}</td>
+          <td>
+            <a href="#" onclick="openBoardDetail(${board.id}); return false;" style="color: var(--primary); text-decoration: none;">
+              ${board.title}
+            </a>
+          </td>
           <td>${board.author?.nickname || '익명'}</td>
           <td><span class="badge ${board.type.toLowerCase()}">${board.type}</span></td>
+          <td>${board.adminReply ? '✅ 답변완료' : board.type === 'SUGGESTION' ? '⏳ 미답변' : '-'}</td>
           <td>${board.pinned ? '<span class="badge pinned">고정</span>' : '-'}</td>
           <td>${board.viewCount}</td>
           <td>${new Date(board.createdAt).toLocaleDateString()}</td>
@@ -613,6 +702,88 @@
       alert('삭제 실패: ' + err.message);
     }
   }
+
+  // 게시글 상세 모달 열기
+  async function openBoardDetail(boardId) {
+    try {
+      const board = await apiCall(`/api/boards/${boardId}`);
+      const modal = document.getElementById('boardModal');
+      const content = document.getElementById('boardDetailContent');
+
+      const hasReply = board.adminReply;
+
+      content.innerHTML = `
+        <div class="board-meta">
+          <span><strong>작성자:</strong> ${board.author?.nickname || '익명'}</span>
+          <span><strong>타입:</strong> <span class="badge ${board.type.toLowerCase()}">${board.type}</span></span>
+          <span><strong>작성일:</strong> ${new Date(board.createdAt).toLocaleString()}</span>
+          <span><strong>조회수:</strong> ${board.viewCount}</span>
+        </div>
+
+        <h3>${board.title}</h3>
+
+        <div class="board-content">
+          ${board.content.replace(/\n/g, '<br>')}
+        </div>
+
+        ${hasReply ? `
+          <div class="existing-reply">
+            <strong>📢 기존 관리자 답변</strong>
+            <p style="margin: 8px 0 0;">${board.adminReply.replace(/\n/g, '<br>')}</p>
+            <small style="color: var(--muted);">
+              답변일: ${new Date(board.adminRepliedAt).toLocaleString()}
+            </small>
+          </div>
+        ` : ''}
+
+        <div class="admin-reply-section">
+          <h3>${hasReply ? '답변 수정' : '관리자 답변 작성'}</h3>
+          <form onsubmit="submitReply(event, ${boardId})">
+            <div class="form-group">
+              <label for="replyContent">답변 내용</label>
+              <textarea id="replyContent" required rows="6" placeholder="사용자에게 전달할 답변을 작성하세요...">${hasReply ? board.adminReply : ''}</textarea>
+            </div>
+            <button type="submit" class="primary">${hasReply ? '답변 수정' : '답변 등록'}</button>
+          </form>
+        </div>
+      `;
+
+      modal.classList.add('show');
+    } catch (err) {
+      alert('게시글 로드 실패: ' + err.message);
+    }
+  }
+
+  // 게시글 상세 모달 닫기
+  function closeBoardModal() {
+    document.getElementById('boardModal').classList.remove('show');
+  }
+
+  // 답변 제출
+  async function submitReply(event, boardId) {
+    event.preventDefault();
+    const reply = document.getElementById('replyContent').value;
+
+    try {
+      await apiCall(`/api/admin/boards/${boardId}/reply`, {
+        method: 'POST',
+        body: JSON.stringify({ reply })
+      });
+
+      alert('답변이 등록되었습니다');
+      closeBoardModal();
+      loadBoards();
+    } catch (err) {
+      alert('답변 등록 실패: ' + err.message);
+    }
+  }
+
+  // 모달 외부 클릭 시 닫기
+  document.getElementById('boardModal').addEventListener('click', (e) => {
+    if (e.target.id === 'boardModal') {
+      closeBoardModal();
+    }
+  });
 </script>
 
 </body>
