@@ -6,9 +6,34 @@ set -e
 
 echo "🚀 Starting TodayUs deployment with Docker Compose..."
 
+# .env 파일 백업 (git pull로 인한 손실 방지)
+if [ -f .env ]; then
+    echo "💾 Backing up .env file..."
+    cp .env .env.backup
+fi
+
 # Git pull로 최신 코드 가져오기
 echo "📥 Pulling latest code from Git..."
 git pull origin main
+
+# .env 파일 복원
+if [ -f .env.backup ]; then
+    echo "📂 Restoring .env file..."
+    mv .env.backup .env
+elif [ ! -f .env ]; then
+    echo "⚠️  Warning: .env file not found! Creating from template..."
+    if [ -f .env.example ]; then
+        cp .env.example .env
+    fi
+fi
+
+# .env 파일 확인
+if [ ! -f .env ]; then
+    echo "❌ Error: .env file is required for deployment!"
+    exit 1
+fi
+
+echo "✅ .env file confirmed"
 
 # Docker Compose로 전체 스택 배포
 echo "🐳 Deploying with Docker Compose..."
@@ -20,8 +45,9 @@ docker-compose stop backend frontend || true
 echo "🏗️  Building images..."
 docker-compose build --no-cache backend frontend
 
-# 서비스들 시작
-docker-compose up -d
+# 서비스들 시작 (.env 파일 명시적으로 로드)
+echo "🚀 Starting services with .env file..."
+docker-compose --env-file .env up -d
 
 echo "⏳ Waiting for services to start..."
 sleep 45
