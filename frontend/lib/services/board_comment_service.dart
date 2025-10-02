@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../config/api_endpoints.dart';
 import 'api_service.dart';
 
@@ -7,9 +8,16 @@ class BoardCommentService {
     final response = await ApiService.get('${ApiEndpoints.baseUrl}/api/boards/$boardId/comments');
 
     if (ApiService.isSuccessful(response.statusCode)) {
-      final parsed = ApiService.parseResponse(response);
-      if (parsed is List) {
-        return parsed.cast<Map<String, dynamic>>();
+      if (response.body.isEmpty) {
+        return [];
+      }
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is List) {
+          return decoded.map((item) => item as Map<String, dynamic>).toList();
+        }
+      } catch (e) {
+        print('Error parsing comments: $e');
       }
       return [];
     } else {
