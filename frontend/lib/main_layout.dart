@@ -3,7 +3,7 @@ import 'screens/home/home_screen.dart';
 import 'screens/diary/diary_list_screen.dart';
 import 'screens/diary/diary_write_screen.dart';
 import 'screens/ai/ai_chat_screen.dart';
-import 'screens/timeline/timeline_screen.dart';
+import 'screens/store/store_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'services/diary_service.dart';
 
@@ -31,7 +31,7 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
       HomeScreen(onDiaryStateChanged: _checkTodayDiary),
       const DiaryListScreen(),
       const AiChatScreen(),
-      const TimelineScreen(),
+      const StoreScreen(),
       const ProfileScreen(),
     ];
 
@@ -126,9 +126,9 @@ class _MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                 label: 'AI',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.timeline_outlined),
-                activeIcon: Icon(Icons.timeline),
-                label: '타임라인',
+                icon: Icon(Icons.store_outlined),
+                activeIcon: Icon(Icons.store),
+                label: '상점',
               ),
               BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline),

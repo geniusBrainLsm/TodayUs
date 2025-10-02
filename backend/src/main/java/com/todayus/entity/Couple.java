@@ -57,7 +57,15 @@ public class Couple {
     @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-    
+
+    @Builder.Default
+    @Column(nullable = false)
+    private Integer oilBalance = 0;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "active_robot_id", foreignKey = @ForeignKey(value = ConstraintMode.NO_CONSTRAINT))
+    private AiRobot activeRobot;
+
     public enum CoupleStatus {
         CONNECTED, DISCONNECTED
     }
@@ -118,5 +126,38 @@ public class Couple {
     
     public boolean hasAnniversaryDate() {
         return anniversaryDate != null;
+    }
+
+    // Oil management methods
+    public Integer getOilBalance() {
+        return this.oilBalance == null ? 0 : this.oilBalance;
+    }
+
+    public void addOil(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        this.oilBalance = Math.max(0, (this.oilBalance == null ? 0 : this.oilBalance) + amount);
+    }
+
+    public void spendOil(int amount) {
+        if (amount <= 0) {
+            return;
+        }
+        int current = this.oilBalance == null ? 0 : this.oilBalance;
+        this.oilBalance = Math.max(0, current - amount);
+    }
+
+    public boolean hasEnoughOil(int amount) {
+        return (this.oilBalance == null ? 0 : this.oilBalance) >= amount;
+    }
+
+    // Robot management methods
+    public void activateRobot(AiRobot robot) {
+        this.activeRobot = robot;
+    }
+
+    public AiRobot getActiveRobot() {
+        return this.activeRobot;
     }
 }

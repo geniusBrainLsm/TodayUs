@@ -653,8 +653,8 @@
         <tr>
           <td>${robot.id}</td>
           <td>${robot.name}</td>
-          <td>${robot.price} 오일</td>
-          <td>${robot.description}</td>
+          <td>${robot.priceOil || 0} 오일</td>
+          <td>${robot.description || '-'}</td>
           <td>
             <button class="danger" onclick="deleteRobot(${robot.id})">삭제</button>
           </td>

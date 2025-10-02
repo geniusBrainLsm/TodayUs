@@ -2,11 +2,13 @@ package com.todayus.service;
 
 import com.todayus.dto.StoreDto;
 import com.todayus.entity.AiRobot;
+import com.todayus.entity.Couple;
+import com.todayus.entity.CoupleRobot;
 import com.todayus.entity.User;
-import com.todayus.entity.UserRobot;
 import com.todayus.repository.AiRobotRepository;
+import com.todayus.repository.CoupleRepository;
+import com.todayus.repository.CoupleRobotRepository;
 import com.todayus.repository.UserRepository;
-import com.todayus.repository.UserRobotRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,81 +29,97 @@ public class RobotStoreService {
 
     private final AiRobotRepository aiRobotRepository;
     private final UserRepository userRepository;
-    private final UserRobotRepository userRobotRepository;
+    private final CoupleRepository coupleRepository;
+    private final CoupleRobotRepository coupleRobotRepository;
 
     public StoreDto.StoreOverview getStoreOverview(User user) {
-        ensureActiveRobot(user);
+        Couple couple = getCouple(user);
+        ensureActiveRobot(couple);
         List<AiRobot> robots = aiRobotRepository.findAllByActiveTrueOrderByDisplayOrderAscNameAsc();
-        Map<Long, Boolean> ownershipMap = buildOwnershipMap(user);
+        Map<Long, Boolean> ownershipMap = buildOwnershipMap(couple);
 
         List<StoreDto.RobotSummary> summaries = robots.stream()
                 .map(robot -> toRobotSummary(robot,
                         ownershipMap.getOrDefault(robot.getId(), Boolean.FALSE),
-                        isActiveRobot(user, robot)))
+                        isActiveRobot(couple, robot)))
                 .collect(Collectors.toList());
 
         return StoreDto.StoreOverview.builder()
-                .oilBalance(user.getOilBalance())
+                .oilBalance(couple.getOilBalance())
                 .robots(summaries)
                 .build();
     }
 
     public StoreDto.StoreOverview purchaseRobot(User user, Long robotId) {
+        Couple couple = getCouple(user);
         AiRobot robot = findActiveRobot(robotId);
-        ensureActiveRobot(user);
+        ensureActiveRobot(couple);
 
-        if (userRobotRepository.existsByUserAndRobot(user, robot)) {
-            user.activateRobot(robot);
-            userRepository.save(user);
+        // 이미 구매한 로봇이면 활성화만 수행
+        if (coupleRobotRepository.existsByCoupleAndRobot(couple, robot)) {
+            couple.activateRobot(robot);
+            coupleRepository.save(couple);
             return getStoreOverview(user);
         }
 
-        if (!user.hasEnoughOil(robot.getPriceOil())) {
+        // 오일 잔액 확인
+        if (!couple.hasEnoughOil(robot.getPriceOil())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "보유한 오일이 부족합니다.");
         }
 
-        user.spendOil(robot.getPriceOil());
-        user.activateRobot(robot);
-        userRepository.save(user);
+        // 오일 차감 및 로봇 활성화
+        couple.spendOil(robot.getPriceOil());
+        couple.activateRobot(robot);
+        coupleRepository.save(couple);
 
-        userRobotRepository.save(UserRobot.builder()
-                .user(user)
+        // 커플 로봇 구매 기록 생성
+        coupleRobotRepository.save(CoupleRobot.builder()
+                .couple(couple)
                 .robot(robot)
                 .build());
+
+        log.info("커플 {}이(가) 로봇 {}을(를) 구매했습니다. 남은 오일: {}",
+                couple.getId(), robot.getName(), couple.getOilBalance());
 
         return getStoreOverview(user);
     }
 
     public StoreDto.StoreOverview activateRobot(User user, Long robotId) {
+        Couple couple = getCouple(user);
         AiRobot robot = findActiveRobot(robotId);
-        ensureActiveRobot(user);
+        ensureActiveRobot(couple);
 
-        if (!userRobotRepository.existsByUserAndRobot(user, robot) && !robot.isDefaultRobot()) {
+        // 구매하지 않은 로봇인지 확인 (기본 로봇 제외)
+        if (!coupleRobotRepository.existsByCoupleAndRobot(couple, robot) && !robot.isDefaultRobot()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "아직 구매하지 않은 로봇입니다.");
         }
 
-        user.activateRobot(robot);
-        userRepository.save(user);
+        couple.activateRobot(robot);
+        coupleRepository.save(couple);
         return getStoreOverview(user);
     }
 
     public void grantOil(User user, int amount) {
+        Couple couple = getCouple(user);
         if (amount <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "오일 충전량은 0보다 커야 합니다.");
         }
-        user.addOil(amount);
-        userRepository.save(user);
+        couple.addOil(amount);
+        coupleRepository.save(couple);
+        log.info("커플 {}에게 오일 {}개 지급. 현재 잔액: {}", couple.getId(), amount, couple.getOilBalance());
     }
 
     public void deductOil(User user, int amount) {
+        Couple couple = getCouple(user);
         if (amount <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "오일 차감량은 0보다 커야 합니다.");
         }
-        if (!user.hasEnoughOil(amount)) {
+        if (!couple.hasEnoughOil(amount)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "보유한 오일이 부족합니다.");
         }
-        user.spendOil(amount);
-        userRepository.save(user);
+        couple.spendOil(amount);
+        coupleRepository.save(couple);
+        log.info("커플 {}에서 오일 {}개 차감. 현재 잔액: {}", couple.getId(), amount, couple.getOilBalance());
     }
 
     public List<AiRobot> getAllRobots() {
@@ -159,24 +177,26 @@ public class RobotStoreService {
         aiRobotRepository.deleteById(robotId);
     }
 
-    public AiRobot ensureActiveRobot(User user) {
-        AiRobot current = user.getActiveRobot();
+    public AiRobot ensureActiveRobot(Couple couple) {
+        AiRobot current = couple.getActiveRobot();
         if (current != null && current.isActive()) {
             return current;
         }
 
+        // 기본 로봇 찾기
         AiRobot fallback = aiRobotRepository.findFirstByDefaultRobotTrue()
                 .orElseGet(() -> aiRobotRepository.findAllByActiveTrueOrderByDisplayOrderAscNameAsc()
                         .stream()
                         .findFirst()
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용 가능한 로봇이 없습니다.")));
 
-        user.activateRobot(fallback);
-        userRepository.save(user);
+        couple.activateRobot(fallback);
+        coupleRepository.save(couple);
 
-        if (!userRobotRepository.existsByUserAndRobot(user, fallback)) {
-            userRobotRepository.save(UserRobot.builder()
-                    .user(user)
+        // 기본 로봇은 자동으로 소유
+        if (!coupleRobotRepository.existsByCoupleAndRobot(couple, fallback)) {
+            coupleRobotRepository.save(CoupleRobot.builder()
+                    .couple(couple)
                     .robot(fallback)
                     .build());
         }
@@ -192,21 +212,27 @@ public class RobotStoreService {
         return robot;
     }
 
-    private Map<Long, Boolean> buildOwnershipMap(User user) {
+    private Map<Long, Boolean> buildOwnershipMap(Couple couple) {
         Map<Long, Boolean> map = new HashMap<>();
-        userRobotRepository.findByUser(user).forEach(ownership ->
+        coupleRobotRepository.findByCouple(couple).forEach(ownership ->
                 map.put(ownership.getRobot().getId(), Boolean.TRUE)
         );
 
+        // 기본 로봇은 모두 소유
         aiRobotRepository.findAll().stream()
                 .filter(AiRobot::isDefaultRobot)
                 .forEach(defaultRobot -> map.put(defaultRobot.getId(), Boolean.TRUE));
         return map;
     }
 
-    private boolean isActiveRobot(User user, AiRobot robot) {
-        AiRobot active = user.getActiveRobot();
+    private boolean isActiveRobot(Couple couple, AiRobot robot) {
+        AiRobot active = couple.getActiveRobot();
         return active != null && active.getId().equals(robot.getId());
+    }
+
+    private Couple getCouple(User user) {
+        return coupleRepository.findByUser1OrUser2(user, user)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "커플 연결이 필요합니다."));
     }
 
     private StoreDto.RobotSummary toRobotSummary(AiRobot robot, boolean owned, boolean active) {

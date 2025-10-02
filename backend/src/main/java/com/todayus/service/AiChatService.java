@@ -45,6 +45,7 @@ public class AiChatService {
     private final CoupleRepository coupleRepository;
     private final DiaryContextService diaryContextService;
     private final AIAnalysisService aiAnalysisService;
+    private final PromptService promptService;
 
     public AiChatDto.Response chat(String userEmail, AiChatDto.Request request) {
         User user = userRepository.findByEmail(userEmail)
@@ -87,7 +88,9 @@ public class AiChatService {
         String recentSection = buildRecentSection(recentHighlights);
         String condensedContext = assembleContext(monthlyOverview, relevantSection, recentSection);
         String userPrompt = buildUserPrompt(condensedContext, question);
-        String systemPrompt = buildSystemPrompt();
+
+        // 로봇의 프롬프트와 기본 프롬프트 조합
+        String systemPrompt = promptService.buildChatSystemPrompt(couple);
 
         String reply;
         try {

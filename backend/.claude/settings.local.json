@@ -10,7 +10,11 @@
       "Bash(git add:*)",
       "Bash(git push:*)",
       "Read(//c/Users/dlwns/IdeaProjects/TodayUs/**)",
-      "Bash(flutter analyze:*)"
+      "Bash(flutter analyze:*)",
+      "Bash(nslookup:*)",
+      "Bash(host:*)",
+      "WebFetch(domain:console.cloud.google.com)",
+      "Bash(ping:*)"
     ],
     "deny": [],
     "ask": []

@@ -1400,7 +1400,7 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
-  // 하단 통계
+  // 하단 통계 - 타임라인 통합
   Widget _buildBottomStats() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -1416,38 +1416,130 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '최근 감정 현황',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: _emotionStats.take(4).map((stat) {
-              return Column(
-                children: [
-                  Text(
-                    _getEmotionEmoji(stat['emotion']),
-                    style: const TextStyle(fontSize: 28),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${stat['count']}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              );
-            }).toList(),
+            children: [
+              Icon(
+                Icons.auto_awesome,
+                color: const Color(0xFF4A90E2),
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '이번 달 감정 분석',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
           ),
+          const SizedBox(height: 20),
+          _emotionStats.isEmpty
+              ? Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(30),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.psychology_outlined,
+                        size: 48,
+                        color: Colors.grey.shade400,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'AI 감정 분석 대기 중',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '일기가 AI 분석을 완료하면 감정 통계가 표시됩니다',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Column(
+                  children: _emotionStats.map((stat) {
+                    final emotion = stat['emotion'] as String;
+                    final count = stat['count'] as int;
+                    final percentage = stat['percentage'] as double;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      child: Row(
+                        children: [
+                          // Emoji
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF4A90E2).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _getEmotionEmoji(emotion),
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          // Label and bar
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _getEmotionLabel(emotion),
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      '$count회 (${percentage.toStringAsFixed(1)}%)',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                LinearProgressIndicator(
+                                  value: percentage / 100,
+                                  backgroundColor: Colors.grey.shade200,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    const Color(0xFF4A90E2),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
         ],
       ),
     );
