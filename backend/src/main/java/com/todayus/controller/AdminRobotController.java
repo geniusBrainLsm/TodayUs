@@ -44,6 +44,15 @@ public class AdminRobotController {
                 .collect(Collectors.toList()));
     }
 
+    @GetMapping("/robots/{robotId}")
+    public ResponseEntity<RobotAdminDto.Response> getRobot(
+            @AuthenticationPrincipal CustomOAuth2User principal,
+            @PathVariable Long robotId) {
+        loadAdmin(principal);
+        return ResponseEntity.ok(RobotAdminDto.Response.from(
+                robotStoreService.getRobot(robotId)));
+    }
+
     @PostMapping("/robots")
     public ResponseEntity<RobotAdminDto.Response> createRobot(
             @AuthenticationPrincipal CustomOAuth2User principal,

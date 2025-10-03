@@ -484,6 +484,133 @@
   </div>
 </div>
 
+<!-- 로봇 수정 모달 -->
+<div id="robotEditModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>로봇 정보 수정</h2>
+      <button class="close-btn" onclick="closeRobotEditModal()">&times;</button>
+    </div>
+    <form id="robotEditForm">
+      <input type="hidden" id="editRobotId" />
+      <div class="row two">
+        <div>
+          <label for="editRobotCode">코드</label>
+          <input type="text" id="editRobotCode" required />
+        </div>
+        <div>
+          <label for="editRobotName">이름</label>
+          <input type="text" id="editRobotName" required />
+        </div>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="editRobotTagline">태그라인</label>
+          <input type="text" id="editRobotTagline" />
+        </div>
+        <div>
+          <label for="editRobotPrice">가격 (오일)</label>
+          <input type="number" id="editRobotPrice" required min="0" />
+        </div>
+      </div>
+      <div>
+        <label for="editRobotDescription">설명</label>
+        <textarea id="editRobotDescription"></textarea>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="editRobotImageUrl">이미지 URL</label>
+          <input type="text" id="editRobotImageUrl" />
+        </div>
+        <div>
+          <label for="editRobotSplashImageUrl">스플래시 이미지 URL</label>
+          <input type="text" id="editRobotSplashImageUrl" />
+        </div>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="editRobotThemeColor">테마 색상 (HEX)</label>
+          <input type="text" id="editRobotThemeColor" placeholder="#000000" />
+        </div>
+        <div>
+          <label for="editRobotPreviewMessage">미리보기 메시지</label>
+          <input type="text" id="editRobotPreviewMessage" />
+        </div>
+      </div>
+      <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 18px;">채팅 설정</h3>
+      <div>
+        <label for="editRobotChatPrompt">채팅 시스템 프롬프트</label>
+        <textarea id="editRobotChatPrompt" rows="4"></textarea>
+      </div>
+      <div>
+        <label for="editRobotChatGuidance">채팅 사용자 가이던스</label>
+        <textarea id="editRobotChatGuidance" rows="2"></textarea>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="editRobotChatMaxTokens">채팅 최대 토큰</label>
+          <input type="number" id="editRobotChatMaxTokens" min="100" />
+        </div>
+        <div>
+          <label for="editRobotChatTemperature">채팅 Temperature</label>
+          <input type="number" id="editRobotChatTemperature" step="0.01" min="0" max="2" />
+        </div>
+      </div>
+      <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 18px;">코멘트 설정</h3>
+      <div>
+        <label for="editRobotCommentPrompt">코멘트 시스템 프롬프트</label>
+        <textarea id="editRobotCommentPrompt" rows="4"></textarea>
+      </div>
+      <div>
+        <label for="editRobotCommentGuidance">코멘트 사용자 가이던스</label>
+        <textarea id="editRobotCommentGuidance" rows="2"></textarea>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="editRobotCommentMaxTokens">코멘트 최대 토큰</label>
+          <input type="number" id="editRobotCommentMaxTokens" min="100" />
+        </div>
+        <div>
+          <label for="editRobotCommentTemperature">코멘트 Temperature</label>
+          <input type="number" id="editRobotCommentTemperature" step="0.01" min="0" max="2" />
+        </div>
+      </div>
+      <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 18px;">감정 분석 설정</h3>
+      <div>
+        <label for="editRobotEmotionPrompt">감정 시스템 프롬프트</label>
+        <textarea id="editRobotEmotionPrompt" rows="4"></textarea>
+      </div>
+      <div class="row two">
+        <div>
+          <label for="editRobotEmotionMaxTokens">감정 최대 토큰</label>
+          <input type="number" id="editRobotEmotionMaxTokens" min="100" />
+        </div>
+        <div>
+          <label for="editRobotEmotionTemperature">감정 Temperature</label>
+          <input type="number" id="editRobotEmotionTemperature" step="0.01" min="0" max="2" />
+        </div>
+      </div>
+      <div style="margin-top: 24px;">
+        <label>
+          <input type="checkbox" id="editRobotDefaultRobot" />
+          기본 로봇으로 설정
+        </label>
+      </div>
+      <div style="margin-top: 12px;">
+        <label>
+          <input type="checkbox" id="editRobotActive" />
+          활성화
+        </label>
+      </div>
+      <div style="margin-top: 16px;">
+        <label for="editRobotDisplayOrder">표시 순서</label>
+        <input type="number" id="editRobotDisplayOrder" min="0" />
+      </div>
+      <button type="submit" class="primary" style="margin-top: 24px;">수정 완료</button>
+    </form>
+  </div>
+</div>
+
 <script>
   let authToken = null;
 
@@ -647,7 +774,7 @@
   // 로봇 목록 로드
   async function loadRobots() {
     try {
-      const data = await apiCall('/api/admin/robots');
+      const data = await apiCall('/api/admin/store/robots');
       const tbody = document.querySelector('#robotsTable tbody');
       tbody.innerHTML = data.map(robot => `
         <tr>
@@ -656,6 +783,7 @@
           <td>${robot.priceOil || 0} 오일</td>
           <td>${robot.description || '-'}</td>
           <td>
+            <button class="secondary" onclick="openEditRobotModal(${robot.id})">수정</button>
             <button class="danger" onclick="deleteRobot(${robot.id})">삭제</button>
           </td>
         </tr>
@@ -679,7 +807,7 @@
     };
 
     try {
-      await apiCall('/api/admin/robots', {
+      await apiCall('/api/admin/store/robots', {
         method: 'POST',
         body: JSON.stringify(robotData)
       });
@@ -695,7 +823,7 @@
   async function deleteRobot(robotId) {
     if (!confirm('정말 이 로봇을 삭제하시겠습니까?')) return;
     try {
-      await apiCall(`/api/admin/robots/${robotId}`, { method: 'DELETE' });
+      await apiCall(`/api/admin/store/robots/${robotId}`, { method: 'DELETE' });
       alert('로봇이 삭제되었습니다');
       loadRobots();
     } catch (err) {
@@ -782,6 +910,112 @@
   document.getElementById('boardModal').addEventListener('click', (e) => {
     if (e.target.id === 'boardModal') {
       closeBoardModal();
+    }
+  });
+
+  // 로봇 수정 모달 열기
+  async function openEditRobotModal(robotId) {
+    try {
+      const robot = await apiCall(`/api/admin/store/robots/${robotId}`);
+      const modal = document.getElementById('robotEditModal');
+
+      // 모든 필드 채우기
+      document.getElementById('editRobotId').value = robot.id;
+      document.getElementById('editRobotCode').value = robot.code || '';
+      document.getElementById('editRobotName').value = robot.name || '';
+      document.getElementById('editRobotTagline').value = robot.tagline || '';
+      document.getElementById('editRobotPrice').value = robot.priceOil || 0;
+      document.getElementById('editRobotDescription').value = robot.description || '';
+      document.getElementById('editRobotImageUrl').value = robot.imageUrl || '';
+      document.getElementById('editRobotSplashImageUrl').value = robot.splashImageUrl || '';
+      document.getElementById('editRobotThemeColor').value = robot.themeColorHex || '';
+      document.getElementById('editRobotPreviewMessage').value = robot.previewMessage || '';
+
+      // 채팅 설정
+      document.getElementById('editRobotChatPrompt').value = robot.chatSystemPrompt || '';
+      document.getElementById('editRobotChatGuidance').value = robot.chatUserGuidance || '';
+      document.getElementById('editRobotChatMaxTokens').value = robot.chatMaxTokens || 300;
+      document.getElementById('editRobotChatTemperature').value = robot.chatTemperature || 0.7;
+
+      // 코멘트 설정
+      document.getElementById('editRobotCommentPrompt').value = robot.commentSystemPrompt || '';
+      document.getElementById('editRobotCommentGuidance').value = robot.commentUserGuidance || '';
+      document.getElementById('editRobotCommentMaxTokens').value = robot.commentMaxTokens || 150;
+      document.getElementById('editRobotCommentTemperature').value = robot.commentTemperature || 0.7;
+
+      // 감정 분석 설정
+      document.getElementById('editRobotEmotionPrompt').value = robot.emotionSystemPrompt || '';
+      document.getElementById('editRobotEmotionMaxTokens').value = robot.emotionMaxTokens || 200;
+      document.getElementById('editRobotEmotionTemperature').value = robot.emotionTemperature || 0.5;
+
+      // 기타 설정
+      document.getElementById('editRobotDefaultRobot').checked = robot.defaultRobot || false;
+      document.getElementById('editRobotActive').checked = robot.active !== false;
+      document.getElementById('editRobotDisplayOrder').value = robot.displayOrder || 0;
+
+      modal.classList.add('show');
+    } catch (err) {
+      alert('로봇 정보 로드 실패: ' + err.message);
+    }
+  }
+
+  // 로봇 수정 모달 닫기
+  function closeRobotEditModal() {
+    document.getElementById('robotEditModal').classList.remove('show');
+  }
+
+  // 로봇 수정 모달 외부 클릭 시 닫기
+  document.getElementById('robotEditModal').addEventListener('click', (e) => {
+    if (e.target.id === 'robotEditModal') {
+      closeRobotEditModal();
+    }
+  });
+
+  // 로봇 수정 폼 제출
+  document.getElementById('robotEditForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const robotId = document.getElementById('editRobotId').value;
+
+    const robotData = {
+      code: document.getElementById('editRobotCode').value,
+      name: document.getElementById('editRobotName').value,
+      tagline: document.getElementById('editRobotTagline').value || null,
+      priceOil: parseInt(document.getElementById('editRobotPrice').value),
+      description: document.getElementById('editRobotDescription').value || null,
+      imageUrl: document.getElementById('editRobotImageUrl').value || null,
+      splashImageUrl: document.getElementById('editRobotSplashImageUrl').value || null,
+      themeColorHex: document.getElementById('editRobotThemeColor').value || null,
+      previewMessage: document.getElementById('editRobotPreviewMessage').value || null,
+
+      chatSystemPrompt: document.getElementById('editRobotChatPrompt').value || null,
+      chatUserGuidance: document.getElementById('editRobotChatGuidance').value || null,
+      chatMaxTokens: parseInt(document.getElementById('editRobotChatMaxTokens').value) || null,
+      chatTemperature: parseFloat(document.getElementById('editRobotChatTemperature').value) || null,
+
+      commentSystemPrompt: document.getElementById('editRobotCommentPrompt').value || null,
+      commentUserGuidance: document.getElementById('editRobotCommentGuidance').value || null,
+      commentMaxTokens: parseInt(document.getElementById('editRobotCommentMaxTokens').value) || null,
+      commentTemperature: parseFloat(document.getElementById('editRobotCommentTemperature').value) || null,
+
+      emotionSystemPrompt: document.getElementById('editRobotEmotionPrompt').value || null,
+      emotionMaxTokens: parseInt(document.getElementById('editRobotEmotionMaxTokens').value) || null,
+      emotionTemperature: parseFloat(document.getElementById('editRobotEmotionTemperature').value) || null,
+
+      defaultRobot: document.getElementById('editRobotDefaultRobot').checked,
+      active: document.getElementById('editRobotActive').checked,
+      displayOrder: parseInt(document.getElementById('editRobotDisplayOrder').value) || 0
+    };
+
+    try {
+      await apiCall(`/api/admin/store/robots/${robotId}`, {
+        method: 'PUT',
+        body: JSON.stringify(robotData)
+      });
+      alert('로봇 정보가 수정되었습니다');
+      closeRobotEditModal();
+      loadRobots();
+    } catch (err) {
+      alert('수정 실패: ' + err.message);
     }
   });
 </script>
