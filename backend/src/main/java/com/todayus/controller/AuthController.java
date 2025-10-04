@@ -62,15 +62,16 @@ public class AuthController {
             
             // JWT 토큰 생성
             String token = jwtTokenProvider.createToken(user.getId().toString(), user.getEmail());
-            
-            // 사용자 온보딩 상태 확인
+
+            // 사용자 온보딩 상태 확인 및 커플 정보 조회
             Map<String, Object> onboardingStatus = getUserOnboardingStatus(user);
-            
+            Optional<Couple> couple = coupleRepository.findByUser1OrUser2(user);
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
-            response.put("user", UserDto.from(user));
+            response.put("user", UserDto.fromWithCouple(user, couple.orElse(null)));
             response.put("onboarding", onboardingStatus);
-            
+
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
@@ -126,15 +127,16 @@ public class AuthController {
             
             // JWT 토큰 생성
             String token = jwtTokenProvider.createToken(user.getId().toString(), user.getEmail());
-            
-            // 사용자 온보딩 상태 확인
+
+            // 사용자 온보딩 상태 확인 및 커플 정보 조회
             Map<String, Object> onboardingStatus = getUserOnboardingStatus(user);
-            
+            Optional<Couple> couple = coupleRepository.findByUser1OrUser2(user);
+
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
-            response.put("user", UserDto.from(user));
+            response.put("user", UserDto.fromWithCouple(user, couple.orElse(null)));
             response.put("onboarding", onboardingStatus);
-            
+
             log.info("Google login successful for user: {}", email);
             return ResponseEntity.ok(response);
             
@@ -323,15 +325,16 @@ public class AuthController {
                 userRepository.save(user);
                 
                 log.info("🟢 닉네임 설정 완료: {} -> {}", user.getEmail(), trimmedNickname);
-                
-                // 업데이트된 온보딩 상태 반환
+
+                // 업데이트된 온보딩 상태 반환 및 커플 정보 조회
                 Map<String, Object> onboardingStatus = getUserOnboardingStatus(user);
-                
+                Optional<Couple> couple = coupleRepository.findByUser1OrUser2(user);
+
                 Map<String, Object> response = new HashMap<>();
-                response.put("user", UserDto.from(user));
+                response.put("user", UserDto.fromWithCouple(user, couple.orElse(null)));
                 response.put("onboarding", onboardingStatus);
                 response.put("message", "닉네임이 설정되었습니다.");
-                
+
                 return ResponseEntity.ok(response);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
