@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'services/anniversary_service.dart';
 import 'services/nickname_service.dart';
 import 'services/auth_service.dart';
-import 'screens/debug/environment_debug_screen.dart';
 import 'config/environment.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -248,28 +247,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   
                   const SizedBox(height: 24),
                   
-                  // Debug Section (only in development)
-                  if (EnvironmentConfig.enableDebugMode) ...[
-                    _buildSection(
-                      title: '개발자 도구',
-                      children: [
-                        _buildInfoTile(
-                          icon: Icons.settings,
-                          title: '환경 설정',
-                          subtitle: '개발/스테이징/프로덕션 환경 변경',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const EnvironmentDebugScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                  ],
                   
                   // Account Section
                   _buildSection(
