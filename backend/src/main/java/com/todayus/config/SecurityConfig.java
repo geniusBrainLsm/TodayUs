@@ -44,7 +44,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll() // health, info ?????熬곣뫕??actuator ???깅뮔
-                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message", "/api/admin/login", "/admin/**").permitAll()
+                        .requestMatchers("/", "/api/auth/**", "/oauth2/**", "/login", "/api/health", "/api/users/nickname/check", "/api/couples/invite-code/validate", "/api/daily-message", "/api/admin/**", "/admin/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
