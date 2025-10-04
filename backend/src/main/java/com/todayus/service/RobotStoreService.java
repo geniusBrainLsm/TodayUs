@@ -146,31 +146,31 @@ public class RobotStoreService {
             clearExistingDefaultIfNecessary();
         }
 
-        existing.setCode(payload.getCode());
-        existing.setName(payload.getName());
-        existing.setTagline(payload.getTagline());
-        existing.setDescription(payload.getDescription());
-        existing.setPriceOil(payload.getPriceOil());
-        existing.setImageUrl(payload.getImageUrl());
-        existing.setSplashImageUrl(payload.getSplashImageUrl());
-        existing.setBeforeDiaryImageUrl(payload.getBeforeDiaryImageUrl());
-        existing.setAfterDiaryImageUrl(payload.getAfterDiaryImageUrl());
-        existing.setThemeColorHex(payload.getThemeColorHex());
-        existing.setPreviewMessage(payload.getPreviewMessage());
-        existing.setChatSystemPrompt(payload.getChatSystemPrompt());
-        existing.setChatUserGuidance(payload.getChatUserGuidance());
-        existing.setCommentSystemPrompt(payload.getCommentSystemPrompt());
-        existing.setCommentUserGuidance(payload.getCommentUserGuidance());
-        existing.setEmotionSystemPrompt(payload.getEmotionSystemPrompt());
-        existing.setChatMaxTokens(payload.getChatMaxTokens());
-        existing.setCommentMaxTokens(payload.getCommentMaxTokens());
-        existing.setEmotionMaxTokens(payload.getEmotionMaxTokens());
-        existing.setChatTemperature(payload.getChatTemperature());
-        existing.setCommentTemperature(payload.getCommentTemperature());
-        existing.setEmotionTemperature(payload.getEmotionTemperature());
-        existing.setDefaultRobot(payload.getDefaultRobot() != null && payload.getDefaultRobot());
-        existing.setActive(payload.getActive());
-        existing.setDisplayOrder(payload.getDisplayOrder());
+        if (payload.getCode() != null) existing.setCode(payload.getCode());
+        if (payload.getName() != null) existing.setName(payload.getName());
+        if (payload.getTagline() != null) existing.setTagline(payload.getTagline());
+        if (payload.getDescription() != null) existing.setDescription(payload.getDescription());
+        if (payload.getPriceOil() != null) existing.setPriceOil(payload.getPriceOil());
+        if (payload.getImageUrl() != null) existing.setImageUrl(payload.getImageUrl());
+        if (payload.getSplashImageUrl() != null) existing.setSplashImageUrl(payload.getSplashImageUrl());
+        if (payload.getBeforeDiaryImageUrl() != null) existing.setBeforeDiaryImageUrl(payload.getBeforeDiaryImageUrl());
+        if (payload.getAfterDiaryImageUrl() != null) existing.setAfterDiaryImageUrl(payload.getAfterDiaryImageUrl());
+        if (payload.getThemeColorHex() != null) existing.setThemeColorHex(payload.getThemeColorHex());
+        if (payload.getPreviewMessage() != null) existing.setPreviewMessage(payload.getPreviewMessage());
+        if (payload.getChatSystemPrompt() != null) existing.setChatSystemPrompt(payload.getChatSystemPrompt());
+        if (payload.getChatUserGuidance() != null) existing.setChatUserGuidance(payload.getChatUserGuidance());
+        if (payload.getCommentSystemPrompt() != null) existing.setCommentSystemPrompt(payload.getCommentSystemPrompt());
+        if (payload.getCommentUserGuidance() != null) existing.setCommentUserGuidance(payload.getCommentUserGuidance());
+        if (payload.getEmotionSystemPrompt() != null) existing.setEmotionSystemPrompt(payload.getEmotionSystemPrompt());
+        if (payload.getChatMaxTokens() != null) existing.setChatMaxTokens(payload.getChatMaxTokens());
+        if (payload.getCommentMaxTokens() != null) existing.setCommentMaxTokens(payload.getCommentMaxTokens());
+        if (payload.getEmotionMaxTokens() != null) existing.setEmotionMaxTokens(payload.getEmotionMaxTokens());
+        if (payload.getChatTemperature() != null) existing.setChatTemperature(payload.getChatTemperature());
+        if (payload.getCommentTemperature() != null) existing.setCommentTemperature(payload.getCommentTemperature());
+        if (payload.getEmotionTemperature() != null) existing.setEmotionTemperature(payload.getEmotionTemperature());
+        if (payload.getDefaultRobot() != null) existing.setDefaultRobot(payload.getDefaultRobot());
+        if (payload.getActive() != null) existing.setActive(payload.getActive());
+        if (payload.getDisplayOrder() != null) existing.setDisplayOrder(payload.getDisplayOrder());
 
         return aiRobotRepository.save(existing);
     }
