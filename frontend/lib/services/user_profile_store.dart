@@ -41,6 +41,10 @@ class UserProfileStore {
     await prefs.setString(
         _robotSplashUrlKey, userJson['activeRobotSplashImageUrl']?.toString() ?? '');
     await prefs.setString(
+        _robotBeforeDiaryUrlKey, userJson['activeRobotBeforeDiaryImageUrl']?.toString() ?? '');
+    await prefs.setString(
+        _robotAfterDiaryUrlKey, userJson['activeRobotAfterDiaryImageUrl']?.toString() ?? '');
+    await prefs.setString(
         _robotThemeColorKey, userJson['activeRobotThemeColorHex']?.toString() ?? '');
     await prefs.setString(
         _robotPreviewKey, userJson['activeRobotPreviewMessage']?.toString() ?? '');

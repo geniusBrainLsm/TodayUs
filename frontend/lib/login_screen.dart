@@ -6,6 +6,7 @@ import 'dart:math'; // For pi constant
 import 'config/api_endpoints.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // JWT 토큰 저장용
 import 'package:url_launcher/url_launcher.dart'; // 브라우저 열기용
+import 'services/user_profile_store.dart';
 
 // Google Logo CustomPainter (improved)
 class GoogleLogoPainter extends CustomPainter {
@@ -459,15 +460,28 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        'assets/images/finger_robot.png',
-                        width: 80,
-                        height: 80,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Icon(
-                            Icons.favorite,
-                            size: 80,
-                            color: Colors.white,
+                      child: FutureBuilder<String?>(
+                        future: UserProfileStore.loadActiveRobot().then((robot) => robot.beforeDiaryImageUrl),
+                        builder: (context, snapshot) {
+                          final imageUrl = snapshot.data;
+                          if (imageUrl != null && imageUrl.isNotEmpty) {
+                            return Image.network(
+                              imageUrl,
+                              width: 80,
+                              height: 80,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Image.asset(
+                                  'assets/images/finger_robot.png',
+                                  width: 80,
+                                  height: 80,
+                                );
+                              },
+                            );
+                          }
+                          return Image.asset(
+                            'assets/images/finger_robot.png',
+                            width: 80,
+                            height: 80,
                           );
                         },
                       ),
