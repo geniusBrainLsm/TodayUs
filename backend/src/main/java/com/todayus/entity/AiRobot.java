@@ -54,6 +54,12 @@ public class AiRobot {
     @Column(length = 255)
     private String splashImageUrl;
 
+    @Column(length = 255)
+    private String beforeDiaryImageUrl;
+
+    @Column(length = 255)
+    private String afterDiaryImageUrl;
+
     @Column(length = 12)
     private String themeColorHex;
 

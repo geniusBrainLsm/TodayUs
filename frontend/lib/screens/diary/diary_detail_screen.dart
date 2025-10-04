@@ -392,6 +392,8 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
 
   Widget _buildDiaryHeader() {
     final author = _diary!['author'] as Map<String, dynamic>;
+    final emotionAnalysis = _diary!['emotionAnalysis'] as Map<String, dynamic>?;
+    final emotionEmoji = emotionAnalysis?['emotionEmoji'] as String?;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -443,6 +445,18 @@ class _DiaryDetailScreenState extends State<DiaryDetailScreen>
                   ],
                 ),
               ),
+              if (emotionEmoji != null && emotionEmoji.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    emotionEmoji,
+                    style: const TextStyle(fontSize: 32),
+                  ),
+                ),
             ],
           ),
 

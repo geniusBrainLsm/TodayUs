@@ -13,6 +13,8 @@ class StoreRobot {
   final int priceOil;
   final String? imageUrl;
   final String? splashImageUrl;
+  final String? beforeDiaryImageUrl;
+  final String? afterDiaryImageUrl;
   final String? themeColorHex;
   final String? previewMessage;
   final String? chatGuidance;
@@ -33,6 +35,8 @@ class StoreRobot {
     this.description,
     this.imageUrl,
     this.splashImageUrl,
+    this.beforeDiaryImageUrl,
+    this.afterDiaryImageUrl,
     this.themeColorHex,
     this.previewMessage,
     this.chatGuidance,
@@ -55,6 +59,8 @@ class StoreRobot {
       priceOil: (json['priceOil'] as num?)?.toInt() ?? 0,
       imageUrl: json['imageUrl']?.toString(),
       splashImageUrl: json['splashImageUrl']?.toString(),
+      beforeDiaryImageUrl: json['beforeDiaryImageUrl']?.toString(),
+      afterDiaryImageUrl: json['afterDiaryImageUrl']?.toString(),
       themeColorHex: json['themeColorHex']?.toString(),
       previewMessage: json['previewMessage']?.toString(),
       chatGuidance: json['chatUserGuidance']?.toString(),
@@ -147,6 +153,8 @@ class StoreService {
         name: activeRobot.name,
         imageUrl: activeRobot.imageUrl,
         splashUrl: activeRobot.splashImageUrl,
+        beforeDiaryImageUrl: activeRobot.beforeDiaryImageUrl,
+        afterDiaryImageUrl: activeRobot.afterDiaryImageUrl,
         themeColorHex: activeRobot.themeColorHex,
         previewMessage: activeRobot.previewMessage,
       );

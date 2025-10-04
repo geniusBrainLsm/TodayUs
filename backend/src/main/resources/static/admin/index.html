@@ -529,14 +529,24 @@
       </div>
       <div class="row two">
         <div>
-          <label for="editRobotThemeColor">테마 색상 (HEX)</label>
-          <input type="text" id="editRobotThemeColor" placeholder="#000000" />
+          <label for="editRobotBeforeDiaryImageUrl">일기 작성 전 이미지 URL</label>
+          <input type="text" id="editRobotBeforeDiaryImageUrl" placeholder="/resource/robots/before_diary.png" />
         </div>
         <div>
-          <label for="editRobotPreviewMessage">미리보기 메시지</label>
-          <input type="text" id="editRobotPreviewMessage" />
+          <label for="editRobotAfterDiaryImageUrl">일기 작성 후 이미지 URL</label>
+          <input type="text" id="editRobotAfterDiaryImageUrl" placeholder="/resource/robots/after_diary.png" />
         </div>
       </div>
+      <div>
+        <label for="editRobotPreviewMessage">미리보기 메시지</label>
+        <input type="text" id="editRobotPreviewMessage" />
+      </div>
+      <!-- 테마 색상 기능은 현재 비활성화됨
+      <div>
+        <label for="editRobotThemeColor">테마 색상 (HEX)</label>
+        <input type="text" id="editRobotThemeColor" placeholder="#000000" />
+      </div>
+      -->
       <h3 style="margin-top: 24px; margin-bottom: 12px; font-size: 18px;">채팅 설정</h3>
       <div>
         <label for="editRobotChatPrompt">채팅 시스템 프롬프트</label>
@@ -928,7 +938,9 @@
       document.getElementById('editRobotDescription').value = robot.description || '';
       document.getElementById('editRobotImageUrl').value = robot.imageUrl || '';
       document.getElementById('editRobotSplashImageUrl').value = robot.splashImageUrl || '';
-      document.getElementById('editRobotThemeColor').value = robot.themeColorHex || '';
+      document.getElementById('editRobotBeforeDiaryImageUrl').value = robot.beforeDiaryImageUrl || '';
+      document.getElementById('editRobotAfterDiaryImageUrl').value = robot.afterDiaryImageUrl || '';
+      // document.getElementById('editRobotThemeColor').value = robot.themeColorHex || ''; // 테마 색상 비활성화
       document.getElementById('editRobotPreviewMessage').value = robot.previewMessage || '';
 
       // 채팅 설정
@@ -984,7 +996,9 @@
       description: document.getElementById('editRobotDescription').value || null,
       imageUrl: document.getElementById('editRobotImageUrl').value || null,
       splashImageUrl: document.getElementById('editRobotSplashImageUrl').value || null,
-      themeColorHex: document.getElementById('editRobotThemeColor').value || null,
+      beforeDiaryImageUrl: document.getElementById('editRobotBeforeDiaryImageUrl').value || null,
+      afterDiaryImageUrl: document.getElementById('editRobotAfterDiaryImageUrl').value || null,
+      themeColorHex: null, // 테마 색상 비활성화
       previewMessage: document.getElementById('editRobotPreviewMessage').value || null,
 
       chatSystemPrompt: document.getElementById('editRobotChatPrompt').value || null,

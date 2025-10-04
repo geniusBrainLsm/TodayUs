@@ -21,6 +21,8 @@ public class StoreDto {
         private Integer priceOil;
         private String imageUrl;
         private String splashImageUrl;
+        private String beforeDiaryImageUrl;
+        private String afterDiaryImageUrl;
         private String themeColorHex;
         private String previewMessage;
         private String chatUserGuidance;

@@ -153,6 +153,8 @@ public class RobotStoreService {
         existing.setPriceOil(payload.getPriceOil());
         existing.setImageUrl(payload.getImageUrl());
         existing.setSplashImageUrl(payload.getSplashImageUrl());
+        existing.setBeforeDiaryImageUrl(payload.getBeforeDiaryImageUrl());
+        existing.setAfterDiaryImageUrl(payload.getAfterDiaryImageUrl());
         existing.setThemeColorHex(payload.getThemeColorHex());
         existing.setPreviewMessage(payload.getPreviewMessage());
         existing.setChatSystemPrompt(payload.getChatSystemPrompt());
@@ -254,6 +256,8 @@ public class RobotStoreService {
                 .priceOil(robot.getPriceOil())
                 .imageUrl(robot.getImageUrl())
                 .splashImageUrl(robot.getSplashImageUrl())
+                .beforeDiaryImageUrl(robot.getBeforeDiaryImageUrl())
+                .afterDiaryImageUrl(robot.getAfterDiaryImageUrl())
                 .themeColorHex(robot.getThemeColorHex())
                 .previewMessage(robot.getPreviewMessage())
                 .chatUserGuidance(robot.getChatUserGuidance())

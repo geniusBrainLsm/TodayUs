@@ -4,6 +4,8 @@ class RobotAppearance {
   final String? name;
   final String? imageUrl;
   final String? splashImageUrl;
+  final String? beforeDiaryImageUrl;
+  final String? afterDiaryImageUrl;
   final String? themeColorHex;
   final String? previewMessage;
 
@@ -11,6 +13,8 @@ class RobotAppearance {
     this.name,
     this.imageUrl,
     this.splashImageUrl,
+    this.beforeDiaryImageUrl,
+    this.afterDiaryImageUrl,
     this.themeColorHex,
     this.previewMessage,
   });
@@ -21,6 +25,8 @@ class UserProfileStore {
   static const _robotNameKey = 'user_robot_name';
   static const _robotImageUrlKey = 'user_robot_image_url';
   static const _robotSplashUrlKey = 'user_robot_splash_url';
+  static const _robotBeforeDiaryUrlKey = 'user_robot_before_diary_url';
+  static const _robotAfterDiaryUrlKey = 'user_robot_after_diary_url';
   static const _robotThemeColorKey = 'user_robot_theme_color';
   static const _robotPreviewKey = 'user_robot_preview_message';
   static const _userRoleKey = 'user_role';
@@ -55,6 +61,8 @@ class UserProfileStore {
     String? name,
     String? imageUrl,
     String? splashUrl,
+    String? beforeDiaryImageUrl,
+    String? afterDiaryImageUrl,
     String? themeColorHex,
     String? previewMessage,
   }) async {
@@ -62,6 +70,8 @@ class UserProfileStore {
     await prefs.setString(_robotNameKey, name ?? '');
     await prefs.setString(_robotImageUrlKey, imageUrl ?? '');
     await prefs.setString(_robotSplashUrlKey, splashUrl ?? '');
+    await prefs.setString(_robotBeforeDiaryUrlKey, beforeDiaryImageUrl ?? '');
+    await prefs.setString(_robotAfterDiaryUrlKey, afterDiaryImageUrl ?? '');
     await prefs.setString(_robotThemeColorKey, themeColorHex ?? '');
     await prefs.setString(_robotPreviewKey, previewMessage ?? '');
   }
@@ -72,6 +82,8 @@ class UserProfileStore {
       name: prefs.getString(_robotNameKey),
       imageUrl: prefs.getString(_robotImageUrlKey),
       splashImageUrl: prefs.getString(_robotSplashUrlKey),
+      beforeDiaryImageUrl: prefs.getString(_robotBeforeDiaryUrlKey),
+      afterDiaryImageUrl: prefs.getString(_robotAfterDiaryUrlKey),
       themeColorHex: prefs.getString(_robotThemeColorKey),
       previewMessage: prefs.getString(_robotPreviewKey),
     );

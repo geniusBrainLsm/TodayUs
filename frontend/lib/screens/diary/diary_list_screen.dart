@@ -406,6 +406,10 @@ class DiaryListScreenState extends State<DiaryListScreen> {
 
     final diaryId = diary['id'] as int?;
 
+    // AI 감정 분석 데이터 추출
+    final emotionAnalysis = diary['emotionAnalysis'] as Map<String, dynamic>?;
+    final emotionEmoji = emotionAnalysis?['emotionEmoji'] as String?;
+
     return GestureDetector(
       onTap: diaryId == null
           ? null
@@ -500,26 +504,44 @@ class DiaryListScreenState extends State<DiaryListScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Text(
-                            displayName,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black87,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  displayName,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  _formatDate(
+                                      diary['diaryDate']?.toString() ?? ''),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _formatDate(
-                                diary['diaryDate']?.toString() ?? ''),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
+                          if (emotionEmoji != null && emotionEmoji.isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.shade50,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                emotionEmoji,
+                                style: const TextStyle(fontSize: 24),
+                              ),
                             ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 12),

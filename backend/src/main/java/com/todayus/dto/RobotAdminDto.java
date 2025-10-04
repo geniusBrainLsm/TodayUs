@@ -22,6 +22,8 @@ public class RobotAdminDto {
         private Integer priceOil;
         private String imageUrl;
         private String splashImageUrl;
+        private String beforeDiaryImageUrl;
+        private String afterDiaryImageUrl;
         private String themeColorHex;
         private String previewMessage;
         private String chatSystemPrompt;
@@ -49,6 +51,8 @@ public class RobotAdminDto {
                     .priceOil(robot.getPriceOil())
                     .imageUrl(robot.getImageUrl())
                     .splashImageUrl(robot.getSplashImageUrl())
+                    .beforeDiaryImageUrl(robot.getBeforeDiaryImageUrl())
+                    .afterDiaryImageUrl(robot.getAfterDiaryImageUrl())
                     .themeColorHex(robot.getThemeColorHex())
                     .previewMessage(robot.getPreviewMessage())
                     .chatSystemPrompt(robot.getChatSystemPrompt())
@@ -80,6 +84,8 @@ public class RobotAdminDto {
         private Integer priceOil;
         private String imageUrl;
         private String splashImageUrl;
+        private String beforeDiaryImageUrl;
+        private String afterDiaryImageUrl;
         private String themeColorHex;
         private String previewMessage;
         private String chatSystemPrompt;
@@ -106,6 +112,8 @@ public class RobotAdminDto {
                     .priceOil(priceOil != null ? priceOil : 0)
                     .imageUrl(imageUrl)
                     .splashImageUrl(splashImageUrl)
+                    .beforeDiaryImageUrl(beforeDiaryImageUrl)
+                    .afterDiaryImageUrl(afterDiaryImageUrl)
                     .themeColorHex(themeColorHex)
                     .previewMessage(previewMessage)
                     .chatSystemPrompt(chatSystemPrompt)

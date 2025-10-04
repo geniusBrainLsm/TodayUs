@@ -8,6 +8,7 @@ import '../../services/weekly_feedback_service.dart';
 import '../../services/milestone_service.dart';
 import '../../services/custom_anniversary_service.dart';
 import '../../services/daily_message_service.dart';
+import '../../services/user_profile_store.dart';
 import '../../widgets/couple_message_popup.dart';
 import '../diary/diary_write_screen.dart';
 import '../diary/diary_detail_screen.dart';
@@ -16,8 +17,9 @@ import '../../config/environment.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onDiaryStateChanged;
+  final VoidCallback? onDiaryCreated;
 
-  const HomeScreen({super.key, this.onDiaryStateChanged});
+  const HomeScreen({super.key, this.onDiaryStateChanged, this.onDiaryCreated});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -47,6 +49,10 @@ class _HomeScreenState extends State<HomeScreen>
   String? _gptDailyMessage;
   bool _hasTodayDiary = false;
   bool _hasUnreadCoupleMessage = false;
+  bool _canSendCoupleMessage = true;
+  DateTime? _coupleMessageNextAvailableAt;
+  String? _activeRobotBeforeDiaryUrl;
+  String? _activeRobotAfterDiaryUrl;
 
   @override
   void initState() {
@@ -68,11 +74,13 @@ class _HomeScreenState extends State<HomeScreen>
     ));
 
     _loadData();
+    _loadActiveRobotImages();
     _checkDiaryWritePermission();
     _checkForCoupleMessage();
     _loadRandomDailyMessage();
     _checkTodayDiary();
     _checkForUnreadCoupleMessage();
+    _checkCoupleMessageUsage();
     _startPeriodicRefresh();
   }
 
@@ -160,6 +168,20 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   /// 오늘 일기 존재 여부 확인
+  Future<void> _loadActiveRobotImages() async {
+    try {
+      final robotAppearance = await UserProfileStore.loadActiveRobot();
+      if (mounted) {
+        setState(() {
+          _activeRobotBeforeDiaryUrl = robotAppearance.beforeDiaryImageUrl;
+          _activeRobotAfterDiaryUrl = robotAppearance.afterDiaryImageUrl;
+        });
+      }
+    } catch (e) {
+      print('🔴 로봇 이미지 로드 오류: $e');
+    }
+  }
+
   Future<void> _checkTodayDiary() async {
     try {
       print('🟡 오늘 일기 존재 여부 확인 시작');
@@ -384,7 +406,7 @@ class _HomeScreenState extends State<HomeScreen>
       ),
       child: Column(
         children: [
-          // 마스코트 로봇 이미지 (크게)
+          // 마스코트 로봇 이미지 (크게 - 일기 작성 여부에 따라 동적 변경)
           Container(
             width: 120,
             height: 120,
@@ -394,17 +416,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(60),
-              child: Image.asset(
-                'assets/images/done_robot.png',
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Icon(
-                    Icons.smart_toy,
-                    size: 60,
-                    color: Colors.grey[400],
-                  );
-                },
-              ),
+              child: _buildRobotImage(),
             ),
           ),
 
@@ -1379,13 +1391,39 @@ class _HomeScreenState extends State<HomeScreen>
         const SizedBox(height: 12),
         _QuickActionButton(
           title: '마음 전하기',
-          subtitle: '말하기 어려운 마음을 부드럽게 전달해요',
+          subtitle: _canSendCoupleMessage
+              ? '말하기 어려운 마음을 부드럽게 전달해요'
+              : _coupleMessageNextAvailableAt != null
+                  ? '${_formatCoupleMessageDate(_coupleMessageNextAvailableAt!)} 사용 가능 (탭하여 내역 보기)'
+                  : '3일마다 사용 가능 (탭하여 내역 보기)',
           icon: Icons.favorite_rounded,
-          backgroundColor: const Color(0xFFF472B6),
-          foregroundColor: Colors.white,
+          backgroundColor: _canSendCoupleMessage
+              ? const Color(0xFFF472B6)
+              : Colors.grey.shade300,
+          foregroundColor: _canSendCoupleMessage ? Colors.white : Colors.grey.shade600,
           onPressed: () async {
-            await Navigator.pushNamed(context, '/couple-message-create');
+            // 사용 가능 여부 재확인 (시간이 지났을 수 있음)
+            if (!_canSendCoupleMessage && _coupleMessageNextAvailableAt != null) {
+              final now = DateTime.now();
+              if (_coupleMessageNextAvailableAt!.isBefore(now)) {
+                // 시간이 지났으면 상태 새로고침
+                await _checkCoupleMessageUsage();
+              }
+            }
+
+            if (_canSendCoupleMessage) {
+              // 사용 가능 시 작성 화면으로
+              final result = await Navigator.pushNamed(context, '/couple-message-create');
+              if (result == true) {
+                _checkCoupleMessageUsage();
+              }
+            } else {
+              // 사용 불가 시 내역 화면으로
+              await Navigator.pushNamed(context, '/couple-message-history');
+              _checkCoupleMessageUsage(); // 내역에서 돌아온 후 사용량 다시 확인
+            }
           },
+          trailingIcon: _canSendCoupleMessage ? null : Icons.history,
         ),
       ],
     );
@@ -1396,9 +1434,44 @@ class _HomeScreenState extends State<HomeScreen>
     if (result is Map && result['diaryCreated'] == true && mounted) {
       _checkTodayDiary();
       widget.onDiaryStateChanged?.call();
+      widget.onDiaryCreated?.call(); // DiaryListScreen 새로고침
       _refreshCoupleSummary();
     }
   }
+
+  /// 마음전하기 다음 사용 가능 날짜 포맷
+  String _formatCoupleMessageDate(DateTime dateTime) {
+    final now = DateTime.now();
+    final target = dateTime.toLocal();
+    final diff = target.difference(now);
+
+    if (diff.isNegative) {
+      return '지금 바로';
+    }
+
+    final days = diff.inDays;
+    final hours = diff.inHours % 24;
+    final minutes = diff.inMinutes % 60;
+    final monthDay = '(${target.month}/${target.day})';
+
+    if (days > 0) {
+      if (hours > 0) {
+        return '$days일 $hours시간 후 $monthDay';
+      }
+      return '$days일 후 $monthDay';
+    }
+    if (diff.inHours > 0) {
+      if (minutes > 0) {
+        return '${diff.inHours}시간 ${minutes}분 후';
+      }
+      return '${diff.inHours}시간 후';
+    }
+    if (diff.inMinutes > 0) {
+      return '${diff.inMinutes}분 후';
+    }
+    return '${diff.inSeconds}초 후';
+  }
+
 
   // 하단 통계 - 타임라인 통합
   Widget _buildBottomStats() {
@@ -2138,6 +2211,49 @@ class _HomeScreenState extends State<HomeScreen>
     }
   }
 
+  /// 마음전하기 사용 가능 여부 확인
+  Future<void> _checkCoupleMessageUsage() async {
+    try {
+      final usage = await CoupleMessageService.getWeeklyUsage();
+
+      print('🟡 마음전하기 사용량 응답: $usage');
+
+      if (usage != null && mounted) {
+        final canSend = usage['canSend'] ?? true;
+        DateTime? nextAvailableAt;
+
+        if (usage['nextAvailableAt'] != null) {
+          try {
+            nextAvailableAt = DateTime.parse(usage['nextAvailableAt']).toLocal();
+          } catch (e) {
+            print('🔴 nextAvailableAt 파싱 오류: $e');
+          }
+        }
+
+        setState(() {
+          _canSendCoupleMessage = canSend;
+          _coupleMessageNextAvailableAt = nextAvailableAt;
+        });
+
+        print('🟡 마음전하기 사용 가능: $_canSendCoupleMessage');
+        if (_coupleMessageNextAvailableAt != null) {
+          print('🟡 다음 사용 가능 시간: $_coupleMessageNextAvailableAt');
+          final now = DateTime.now();
+          final difference = _coupleMessageNextAvailableAt!.difference(now);
+          print('🟡 남은 시간: ${difference.inHours}시간 ${difference.inMinutes % 60}분');
+        }
+      }
+    } catch (e) {
+      print('🔴 마음전하기 사용량 확인 오류: $e');
+      if (mounted) {
+        setState(() {
+          _canSendCoupleMessage = true;
+          _coupleMessageNextAvailableAt = null;
+        });
+      }
+    }
+  }
+
   // 대신 전해주기 메시지 팝업 표시
   void _showCoupleMessagePopup() async {
     try {
@@ -2298,6 +2414,52 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  Widget _buildRobotImage() {
+    // 일기 작성 여부에 따라 이미지 URL 선택
+    String? imageUrl;
+    if (_hasTodayDiary && _activeRobotAfterDiaryUrl != null && _activeRobotAfterDiaryUrl!.isNotEmpty) {
+      imageUrl = _activeRobotAfterDiaryUrl;
+    } else if (!_hasTodayDiary && _activeRobotBeforeDiaryUrl != null && _activeRobotBeforeDiaryUrl!.isNotEmpty) {
+      imageUrl = _activeRobotBeforeDiaryUrl;
+    }
+
+    // 이미지 URL이 있으면 네트워크 이미지, 없으면 기본 아이콘
+    if (imageUrl != null) {
+      final fullUrl = imageUrl.startsWith('http')
+          ? imageUrl
+          : '${EnvironmentConfig.baseUrl}$imageUrl';
+
+      return Image.network(
+        fullUrl,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Icon(
+            Icons.smart_toy,
+            size: 60,
+            color: Colors.grey[400],
+          );
+        },
+        loadingBuilder: (context, child, loadingProgress) {
+          if (loadingProgress == null) return child;
+          return Center(
+            child: CircularProgressIndicator(
+              value: loadingProgress.expectedTotalBytes != null
+                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                  : null,
+            ),
+          );
+        },
+      );
+    } else {
+      // 기본 아이콘
+      return Icon(
+        Icons.smart_toy,
+        size: 60,
+        color: Colors.grey[400],
+      );
+    }
   }
 }
 
