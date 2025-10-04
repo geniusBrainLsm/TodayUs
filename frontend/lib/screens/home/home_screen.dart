@@ -9,6 +9,7 @@ import '../../services/milestone_service.dart';
 import '../../services/custom_anniversary_service.dart';
 import '../../services/daily_message_service.dart';
 import '../../services/user_profile_store.dart';
+import '../../services/store_service.dart';
 import '../../widgets/couple_message_popup.dart';
 import '../diary/diary_write_screen.dart';
 import '../diary/diary_detail_screen.dart';
@@ -252,6 +253,13 @@ class _HomeScreenState extends State<HomeScreen>
 
   Future<void> _loadData() async {
     try {
+      // Load store overview to update robot appearance cache
+      try {
+        await StoreService.fetchOverview();
+      } catch (e) {
+        print('⚠️ Failed to fetch store overview: $e');
+      }
+
       final anniversary = await AnniversaryService.getAnniversary();
 
       print('🔵 Home screen loading anniversary data: $anniversary');
